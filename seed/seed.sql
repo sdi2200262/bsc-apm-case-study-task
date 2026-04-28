@@ -3,7 +3,8 @@
 
 -- CAS authentication settings.
 UPDATE auth SET
-  auth_settings = 'cas_host=172.17.0.1|cas_port=8082|cas_context=/cas|cas_cachain=',
+  auth_settings = 'cas_host=172.17.0.1|cas_port=8082|cas_context=|cas_cachain=',
+  auth_title = 'Είσοδος με λογαριασμό ΕΚΠΑ',
   auth_default = 2
 WHERE auth_id = 7;
 
@@ -26,10 +27,11 @@ INSERT INTO course (code, title, keywords, visible, created, public_code, lang) 
   ('CS101', 'Introduction to Computer Science', '', 2, NOW(), 'CS101', 'el'),
   ('MATH201', 'Linear Algebra', '', 2, NOW(), 'MATH201', 'el'),
   ('PHYS150', 'Classical Mechanics', '', 2, NOW(), 'PHYS150', 'el'),
-  ('BIO110', 'General Biology', '', 2, NOW(), 'BIO110', 'el')
+  ('BIO110', 'General Biology', '', 2, NOW(), 'BIO110', 'el'),
+  ('PSYC101', 'Introduction to Psychology', '', 2, NOW(), 'PSYC101', 'el')
 ON DUPLICATE KEY UPDATE title = VALUES(title);
 
--- Test user enrolled in every course.
+-- Test user enrolled in the courses flagged enrolled in seed.yaml.
 INSERT INTO course_user (course_id, user_id, status, reg_date, document_timestamp)
 SELECT id,
        (SELECT id FROM user WHERE username = 'student1'),

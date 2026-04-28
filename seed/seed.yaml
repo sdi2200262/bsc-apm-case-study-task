@@ -20,7 +20,8 @@ user:
 cas:
   host: 172.17.0.1
   port: 8082
-  context: /cas
+  context: ""
+  title: Είσοδος με λογαριασμό ΕΚΠΑ
 
 courses:
   - code: CS101
@@ -28,6 +29,7 @@ courses:
     visible: 2
     public_code: CS101
     lang: el
+    enrolled: true
     announcements:
       - days_ago: 2
         title: Office hours updated for week 7
@@ -47,6 +49,7 @@ courses:
     visible: 2
     public_code: MATH201
     lang: el
+    enrolled: true
     announcements: []
 
   - code: PHYS150
@@ -54,6 +57,7 @@ courses:
     visible: 2
     public_code: PHYS150
     lang: el
+    enrolled: true
     announcements:
       - days_ago: 5
         title: Problem set 3 deadline extended
@@ -67,10 +71,19 @@ courses:
     visible: 2
     public_code: BIO110
     lang: el
+    enrolled: true
     announcements:
       - days_ago: 8
         title: Field trip on Saturday
         body: The optional field trip departs at 09:00 from the main building.
+
+  - code: PSYC101
+    title: Introduction to Psychology
+    visible: 2
+    public_code: PSYC101
+    lang: el
+    enrolled: false
+    announcements: []
 
 admin_announcements:
   - days_ago: 1

@@ -55,10 +55,12 @@ def _emit_cas_auth(cas: dict[str, Any]) -> list[str]:
         f"cas_host={cas['host']}|cas_port={cas['port']}"
         f"|cas_context={cas['context']}|cas_cachain="
     )
+    title = cas.get("title", "")
     return [
         "-- CAS authentication settings.",
         "UPDATE auth SET",
         f"  auth_settings = {_quote(settings)},",
+        f"  auth_title = {_quote(title)},",
         f"  auth_default = {CAS_AUTH_ID - 5}",
         f"WHERE auth_id = {CAS_AUTH_ID};",
         "",
@@ -112,9 +114,12 @@ def _emit_courses(courses: list[dict[str, Any]]) -> list[str]:
 
 
 def _emit_enrollments(courses: list[dict[str, Any]], username: str) -> list[str]:
-    codes = ", ".join(_quote(c["code"]) for c in courses)
+    enrolled = [c for c in courses if c.get("enrolled", True)]
+    if not enrolled:
+        return ["-- Test user enrolments (none configured).", ""]
+    codes = ", ".join(_quote(c["code"]) for c in enrolled)
     return [
-        "-- Test user enrolled in every course.",
+        "-- Test user enrolled in the courses flagged enrolled in seed.yaml.",
         "INSERT INTO course_user"
         " (course_id, user_id, status, reg_date, document_timestamp)",
         "SELECT id,",

@@ -11,6 +11,7 @@ on the dispatch and on the shared response-header surface.
 
 from __future__ import annotations
 
+import base64
 import logging
 import secrets
 import urllib.parse
@@ -65,13 +66,13 @@ class MockCASHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802 (stdlib spelling)
         """Dispatch GET requests by path."""
         path = urllib.parse.urlparse(self.path).path
-        if path == "/cas/login":
+        if path == "/login":
             self._handle_login_get()
-        elif path == "/cas/logout":
+        elif path == "/logout":
             self._handle_logout_get()
-        elif path in ("/cas/serviceValidate", "/cas/proxyValidate"):
+        elif path in ("/serviceValidate", "/proxyValidate"):
             self._handle_service_validate(cas_v3=False)
-        elif path == "/cas/p3/serviceValidate":
+        elif path == "/p3/serviceValidate":
             self._handle_service_validate(cas_v3=True)
         elif path == "/health":
             self._handle_health()
@@ -81,9 +82,9 @@ class MockCASHandler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802
         """Dispatch POST requests by path."""
         path = urllib.parse.urlparse(self.path).path
-        if path == "/cas/login":
+        if path == "/login":
             self._handle_login_post()
-        elif path == "/cas/samlValidate":
+        elif path == "/samlValidate":
             self._handle_saml_validate()
         elif path == "/admin/reset":
             self._handle_admin_reset()
@@ -94,7 +95,7 @@ class MockCASHandler(BaseHTTPRequestHandler):
         """Render the mock login form."""
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         service = query.get("service", [""])[0]
-        execution = secrets.token_urlsafe(48)
+        execution = self._mint_execution(service)
         body = render_login_html(service=service, execution=execution, error=None)
         self._send_html(200, body)
 
@@ -105,11 +106,14 @@ class MockCASHandler(BaseHTTPRequestHandler):
         form = urllib.parse.parse_qs(raw)
         username = (form.get("username") or [""])[0]
         password = (form.get("password") or [""])[0]
+        execution = (form.get("execution") or [""])[0]
         service = (form.get("service") or [""])[0]
+        if not service:
+            service = self._service_from_execution(execution)
 
         if username == self.config.username and password == self.config.password:
             ticket = self.tickets.mint(service=service, username=username)
-            redirect = append_query(service, "ticket", ticket) if service else "/cas/login"
+            redirect = append_query(service, "ticket", ticket) if service else "/login"
             self.send_response(302)
             self._send_common_headers()
             self.send_header("Location", redirect)
@@ -121,13 +125,37 @@ class MockCASHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        execution = secrets.token_urlsafe(48)
+        execution = self._mint_execution(service)
         body = render_login_html(
             service=service,
             execution=execution,
             error="Mock CAS could not authenticate the supplied credentials.",
         )
         self._send_html(401, body)
+
+    @staticmethod
+    def _mint_execution(service: str) -> str:
+        """Bind the service URL into a flow-state token, Apereo-CAS style.
+
+        The token format is ``<random-nonce>.<base64-service>``. A POST that
+        omits the form's hidden ``service`` field can recover it from the
+        token, matching Apereo CAS's stateful execution semantics.
+        """
+        nonce = secrets.token_urlsafe(48)
+        encoded = base64.urlsafe_b64encode(service.encode("utf-8")).decode("ascii").rstrip("=")
+        return f"{nonce}.{encoded}"
+
+    @staticmethod
+    def _service_from_execution(execution: str) -> str:
+        """Recover the service URL bound into the execution token, or empty string."""
+        if "." not in execution:
+            return ""
+        encoded = execution.rsplit(".", 1)[1]
+        padding = "=" * (-len(encoded) % 4)
+        try:
+            return base64.urlsafe_b64decode(encoded + padding).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            return ""
 
     def _handle_logout_get(self) -> None:
         """Render the mock logout confirmation and clear the TGC cookie."""
