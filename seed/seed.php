@@ -23,19 +23,40 @@ const SENTINEL_KEY = 'bsc_apm_seed_applied';
 const DEFAULT_DEPARTMENT_ID = 2;
 const ADMIN_UID = 1;
 
+// The openeclass bootstrap runs at file scope rather than from inside a
+// function: include/init.php transitively loads config/config.php,
+// which assigns $mysqlServer, $mysqlUser, $mysqlPassword, $mysqlMainDb
+// at top level. Wrapping the require_once in a function would scope
+// those names to the function and leave Database::get()'s `global`
+// declarations resolving to NULL, which makes PDO fall back to a
+// non-existent unix socket.
+chdir(WEBROOT);
+
+// openeclass's init.php inspects request superglobals during session
+// and routing setup; populate the keys it expects so the CLI
+// invocation does not fault.
+$_SERVER['REQUEST_URI'] = '/seed';
+$_SERVER['REQUEST_METHOD'] = 'CLI';
+$_SERVER['HTTP_HOST'] = 'localhost';
+$_SERVER['SERVER_NAME'] = 'localhost';
+
+require_once WEBROOT . '/include/init.php';
+require_once WEBROOT . '/modules/create_course/functions.php';
+require_once WEBROOT . '/include/lib/course.class.php';
+require_once WEBROOT . '/modules/search/classes/SearchEngineFactory.php';
+require_once WEBROOT . '/modules/search/classes/ConstantsUtil.php';
+require_once WEBROOT . '/modules/search/lucene/indexer.class.php';
+
 main();
 
 /**
- * Top-level orchestration. Bootstraps the openeclass runtime, then
- * walks the seed in dependency order: auth row, user, courses,
- * enrollments, course announcements, admin announcements, search
- * index drain.
+ * Top-level orchestration. Walks the seed in dependency order: auth
+ * row, user, courses, enrollments, course announcements, admin
+ * announcements, search index drain.
  *
  * @return void
  */
 function main(): void {
-    bootstrap();
-
     if (seed_already_applied()) {
         echo "seed already applied\n";
         return;
@@ -77,32 +98,6 @@ function main(): void {
     mark_seed_applied();
 
     echo "seed applied\n";
-}
-
-/**
- * Load the openeclass runtime so the Database wrapper, the create-
- * flow helpers, the search engine factory, the Course/User/Log
- * classes, and the openeclass constants are all available.
- *
- * @return void
- */
-function bootstrap(): void {
-    chdir(WEBROOT);
-
-    // openeclass's init.php inspects request superglobals during
-    // session and routing setup; populate the keys it expects so the
-    // CLI invocation does not fault.
-    $_SERVER['REQUEST_URI'] = '/seed';
-    $_SERVER['REQUEST_METHOD'] = 'CLI';
-    $_SERVER['HTTP_HOST'] = 'localhost';
-    $_SERVER['SERVER_NAME'] = 'localhost';
-
-    require_once WEBROOT . '/include/init.php';
-    require_once WEBROOT . '/modules/create_course/functions.php';
-    require_once WEBROOT . '/include/lib/course.class.php';
-    require_once WEBROOT . '/modules/search/classes/SearchEngineFactory.php';
-    require_once WEBROOT . '/modules/search/classes/ConstantsUtil.php';
-    require_once WEBROOT . '/modules/search/lucene/indexer.class.php';
 }
 
 /**
