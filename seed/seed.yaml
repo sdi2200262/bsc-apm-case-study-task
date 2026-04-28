@@ -1,0 +1,87 @@
+# Editable source of truth for the testing environment's data state.
+# The generators in this directory turn this file into:
+#   - seed/seed.sql            (applied to the openeclass database on first up)
+#   - mock-cas/cas-config.json (baked into the mock CAS image)
+#
+# Editing this file is sufficient to change the data state of the
+# environment; the generators carry the change to both consumers.
+
+user:
+  username: student1
+  cas_password: mockpass123
+  display_name: Demo Student
+  email: student1@example.edu
+  givenname: Demo
+  surname: Student
+  studentid: STU0001
+  status: 5
+  lang: el
+
+cas:
+  host: 172.17.0.1
+  port: 8082
+  context: /cas
+
+courses:
+  - code: CS101
+    title: Introduction to Computer Science
+    visible: 2
+    public_code: CS101
+    lang: el
+    announcements:
+      - days_ago: 2
+        title: Office hours updated for week 7
+        body: Office hours move to Wednesday 14:00 to 16:00 starting this week.
+      - days_ago: 10
+        title: Reading list posted
+        body: The week 5 reading list is available in the course materials.
+      - days_ago: 25
+        title: Welcome to CS101
+        body: Welcome to the course. The first lecture covers algorithmic complexity.
+      - days_ago: 45
+        title: Course outline released
+        body: The course outline and syllabus are now available on the portal.
+
+  - code: MATH201
+    title: Linear Algebra
+    visible: 2
+    public_code: MATH201
+    lang: el
+    announcements: []
+
+  - code: PHYS150
+    title: Classical Mechanics
+    visible: 2
+    public_code: PHYS150
+    lang: el
+    announcements:
+      - days_ago: 5
+        title: Problem set 3 deadline extended
+        body: Problem set 3 is now due on the following Friday.
+      - days_ago: 35
+        title: Lab schedule confirmed
+        body: Laboratory sessions begin in week 3 and run weekly through the term.
+
+  - code: BIO110
+    title: General Biology
+    visible: 2
+    public_code: BIO110
+    lang: el
+    announcements:
+      - days_ago: 8
+        title: Field trip on Saturday
+        body: The optional field trip departs at 09:00 from the main building.
+
+admin_announcements:
+  - days_ago: 1
+    title: System maintenance Sunday 02:00 to 04:00
+    body: The platform will be unavailable for routine maintenance on Sunday morning.
+    lang: el
+  - days_ago: 15
+    title: Updated acceptable use policy
+    body: The acceptable use policy has been updated; the changes apply immediately.
+    lang: el
+  - days_ago: 60
+    title: Spring term opens
+    body: Spring term enrollments are now open through the portal.
+    lang: el

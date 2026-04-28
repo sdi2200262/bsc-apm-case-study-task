@@ -10,6 +10,7 @@ WORKDIR /opt/mock-cas
 COPY pyproject.toml ./
 COPY src/ ./src/
 COPY fixtures/ ./fixtures/
+COPY cas-config.json /etc/mock-cas/cas-config.json
 
 RUN pip install --no-cache-dir .
 

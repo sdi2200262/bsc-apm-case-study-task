@@ -1,0 +1,9 @@
+{
+  "username": "student1",
+  "password": "mockpass123",
+  "display_name": "Demo Student",
+  "email": "student1@example.edu",
+  "givenname": "Demo",
+  "surname": "Student",
+  "studentid": "STU0001"
+}
