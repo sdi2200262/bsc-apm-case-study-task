@@ -10,7 +10,8 @@
 #   3. wait for openeclass to respond on http://localhost/
 #   4. wait for the mock CAS to respond on https://localhost:8082/health
 #   5. perform openeclass first-time install when config/config.php is absent
-#   6. apply the seed via php inside the eclass container
+#   6. ensure /var/www/html/courses/temp exists for the htmlpurifier cache
+#   7. apply the seed via php inside the eclass container
 
 set -euo pipefail
 
@@ -138,6 +139,9 @@ else
     exit 1
   fi
 fi
+
+step "ensuring courses/temp exists for htmlpurifier cache"
+docker exec "$ECLASS_CONTAINER" mkdir -p /var/www/html/courses/temp
 
 step "applying seed via php"
 docker exec "$ECLASS_CONTAINER" php /srv/seed/seed.php
