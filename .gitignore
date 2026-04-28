@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtualenvs
+.venv/
+env/
+venv/
+ENV/
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Build / release artefacts
+build/
+dist/
+*.tar
+*.tar.gz
+
+# Locally generated SSL certs (produced by ./install)
+certs/*.pem
+certs/*.key
+
+# Local docker overrides
+compose.override.yaml
+docker-compose.override.yaml
