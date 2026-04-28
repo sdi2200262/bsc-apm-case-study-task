@@ -3,8 +3,8 @@
 # Copyright (C) 2025-2026
 #
 # Drop the database volume and bring the stack back up. The next `up`
-# re-applies seed/seed.sql against a fresh database, so dates re-anchor
-# to apply time.
+# re-applies the seed against a fresh database, so dates re-anchor to
+# apply time.
 
 set -euo pipefail
 

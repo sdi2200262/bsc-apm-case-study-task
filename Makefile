@@ -1,7 +1,7 @@
 # Release-prep targets for the BSc APM Case Study testing environment.
 #
 # Targets:
-#   seed          Regenerate seed/seed.sql and mock-cas/cas-config.json from seed/seed.yaml.
+#   seed          Regenerate seed/seed.json and mock-cas/cas-config.json from seed/seed.yaml.
 #   build-images  Build the openeclass and mock CAS images.
 #   save-images   Save both images to release/<image>-<arch>.tar.
 #   release       Assemble the GitHub release tarball at release/bsc-apm-<arch>.tar.gz.
@@ -27,7 +27,7 @@ UV ?= uv
 
 help:
 	@echo "Available targets:"
-	@echo "  seed          regenerate seed/seed.sql and mock-cas/cas-config.json"
+	@echo "  seed          regenerate seed/seed.json and mock-cas/cas-config.json"
 	@echo "  build-images  build openeclass and mock CAS images"
 	@echo "  save-images   save built images to release/*.tar"
 	@echo "  release       assemble $(RELEASE_TARBALL)"
@@ -40,7 +40,7 @@ help:
 	@echo "  RELEASE_DIR=$(RELEASE_DIR)"
 
 seed:
-	$(UV) run --no-project seed/generate_sql.py
+	$(UV) run --no-project seed/generate_seed_json.py
 	$(UV) run --no-project seed/generate_cas_config.py
 
 check-openeclass-ref:
@@ -67,7 +67,7 @@ release: seed save-images
 	@mkdir -p $(STAGING_DIR)/seed
 	cp README.md LICENSE install compose.yaml $(STAGING_DIR)/
 	cp -r scripts docs $(STAGING_DIR)/
-	cp seed/seed.sql $(STAGING_DIR)/seed/
+	cp seed/seed.php seed/seed.json $(STAGING_DIR)/seed/
 	cp $(OPENECLASS_TAR) $(MOCK_CAS_TAR) $(STAGING_DIR)/
 	tar -czf $(RELEASE_TARBALL) -C $(STAGING_DIR) .
 	rm -rf $(STAGING_DIR)

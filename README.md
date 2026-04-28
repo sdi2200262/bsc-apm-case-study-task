@@ -18,9 +18,11 @@ bsc-apm-case-study-env/
 ├── compose.yaml                # Three-service stack (db, eclass, sso)
 ├── install                     # Idempotent install entry script
 ├── Makefile                    # Release-prep targets
-├── seed/                       # Editable seed data and generators
+├── seed/                       # Editable seed data, generators, php seeder
 │   ├── seed.yaml
-│   ├── generate_sql.py
+│   ├── seed.json
+│   ├── seed.php
+│   ├── generate_seed_json.py
 │   └── generate_cas_config.py
 ├── mock-cas/                   # Mock CAS authentication service
 │   ├── Dockerfile

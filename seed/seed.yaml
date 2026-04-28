@@ -1,6 +1,6 @@
 # Editable source of truth for the testing environment's data state.
 # The generators in this directory turn this file into:
-#   - seed/seed.sql            (applied to the openeclass database on first up)
+#   - seed/seed.json           (consumed by seed/seed.php on first up)
 #   - mock-cas/cas-config.json (baked into the mock CAS image)
 #
 # Editing this file is sufficient to change the data state of the
