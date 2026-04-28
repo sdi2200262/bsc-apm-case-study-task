@@ -10,9 +10,9 @@ MariaDB 10.11 from the upstream multi-arch image. Holds the openeclass database;
 
 ### `eclass`
 
-Open eClass platform from upstream gunet, built into a local image (`bsc-apm/openeclass:dev`) at release-prep time. Pinned to a specific upstream commit per release. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
+Open eClass platform from upstream gunet, built into a local image (`bsc-apm/openeclass:dev`) at release-prep time. Pinned to upstream tag `Release_4.3.3`, the most recent stable release line; the upstream `master` branch carries an unfinished refactor that breaks the docker build. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
 
-The image is exactly the upstream platform; no sidecars are baked in, and image identity does not diverge from the pinned commit.
+The image is exactly the upstream platform; no sidecars are baked in, and image identity does not diverge from the pinned tag. On a fresh database, `scripts/up` performs openeclass's first-time install before applying the seed, so participants do not see the install wizard.
 
 ### `sso`
 

@@ -10,6 +10,7 @@
 
 ARCH ?= $(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
 OPENECLASS_PATH ?= ../openeclass
+OPENECLASS_REF ?= Release_4.3.3
 RELEASE_DIR ?= release
 STAGING_DIR = $(RELEASE_DIR)/staging
 
@@ -22,7 +23,7 @@ RELEASE_TARBALL = $(RELEASE_DIR)/bsc-apm-$(ARCH).tar.gz
 
 UV ?= uv
 
-.PHONY: help seed build-images save-images release clean
+.PHONY: help seed check-openeclass-ref build-images save-images release clean
 
 help:
 	@echo "Available targets:"
@@ -35,13 +36,25 @@ help:
 	@echo "Variables:"
 	@echo "  ARCH=$(ARCH)"
 	@echo "  OPENECLASS_PATH=$(OPENECLASS_PATH)"
+	@echo "  OPENECLASS_REF=$(OPENECLASS_REF)"
 	@echo "  RELEASE_DIR=$(RELEASE_DIR)"
 
 seed:
 	$(UV) run --no-project seed/generate_sql.py
 	$(UV) run --no-project seed/generate_cas_config.py
 
-build-images:
+check-openeclass-ref:
+	@actual=$$(git -C $(OPENECLASS_PATH) rev-parse HEAD); \
+	expected=$$(git -C $(OPENECLASS_PATH) rev-parse $(OPENECLASS_REF)); \
+	if [ "$$actual" != "$$expected" ]; then \
+	  echo "openeclass at $(OPENECLASS_PATH) is not at $(OPENECLASS_REF)"; \
+	  echo "  expected: $$expected"; \
+	  echo "  actual:   $$actual"; \
+	  echo "run: git -C $(OPENECLASS_PATH) checkout $(OPENECLASS_REF)"; \
+	  exit 1; \
+	fi
+
+build-images: check-openeclass-ref
 	docker build -t $(OPENECLASS_TAG) $(OPENECLASS_PATH)
 	docker build -t $(MOCK_CAS_TAG) mock-cas/
 

@@ -89,7 +89,8 @@ def _emit_courses(courses: list[dict[str, Any]]) -> list[str]:
     if not courses:
         return lines
     lines.append(
-        "INSERT INTO course (code, title, visible, created, public_code, lang) VALUES"
+        "INSERT INTO course (code, title, keywords, visible, created,"
+        " public_code, lang) VALUES"
     )
     rows = []
     for course in courses:
@@ -97,6 +98,7 @@ def _emit_courses(courses: list[dict[str, Any]]) -> list[str]:
             "  ("
             f"{_quote(course['code'])}, "
             f"{_quote(course['title'])}, "
+            "'', "
             f"{int(course['visible'])}, "
             "NOW(), "
             f"{_quote(course['public_code'])}, "
@@ -113,10 +115,12 @@ def _emit_enrollments(courses: list[dict[str, Any]], username: str) -> list[str]
     codes = ", ".join(_quote(c["code"]) for c in courses)
     return [
         "-- Test user enrolled in every course.",
-        "INSERT INTO course_user (course_id, user_id, status, reg_date)",
+        "INSERT INTO course_user"
+        " (course_id, user_id, status, reg_date, document_timestamp)",
         "SELECT id,",
         f"       (SELECT id FROM user WHERE username = {_quote(username)}),",
         "       5,",
+        "       NOW(),",
         "       NOW()",
         f"FROM course WHERE code IN ({codes})",
         "ON DUPLICATE KEY UPDATE status = 5;",

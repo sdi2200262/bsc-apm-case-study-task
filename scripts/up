@@ -9,7 +9,8 @@
 #   2. wait for the database healthcheck
 #   3. wait for openeclass to respond on http://localhost/
 #   4. wait for the mock CAS to respond on https://localhost:8082/health
-#   5. apply seed/seed.sql when the seeded user is absent
+#   5. perform openeclass first-time install when config/config.php is absent
+#   6. apply seed/seed.sql when the seeded user is absent
 
 set -euo pipefail
 
@@ -18,11 +19,16 @@ PREFIX="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMPOSE=(docker compose -f "$PREFIX/compose.yaml")
 
 DB_CONTAINER="bsc-apm-env-db-1"
+ECLASS_CONTAINER="bsc-apm-env-eclass-1"
 DB_USER=root
 DB_PASS=secret
 DB_NAME=eclass
 
 ECLASS_PROBE="http://localhost/"
+ECLASS_INSTALL_URL="http://localhost/install/index.php"
+ECLASS_CONFIG_PATH="/var/www/html/config/config.php"
+ECLASS_ADMIN_USER=admin
+ECLASS_ADMIN_PASS=adminpass
 SSO_PROBE="https://localhost:8082/health"
 
 WAIT_DB_RETRIES=60
@@ -66,6 +72,39 @@ wait_for_sso_http() {
   return 1
 }
 
+eclass_is_installed() {
+  docker exec "$ECLASS_CONTAINER" test -f "$ECLASS_CONFIG_PATH" 2>/dev/null
+}
+
+run_eclass_install() {
+  curl -fsS -o /dev/null -X POST "$ECLASS_INSTALL_URL" \
+    -d "install8=1" \
+    -d "lang=en" \
+    -d "welcomeScreen=1" \
+    -d "dbHostForm=db" \
+    -d "dbUsernameForm=$DB_USER" \
+    -d "dbPassForm=$DB_PASS" \
+    -d "dbNameForm=$DB_NAME" \
+    -d "dbMyAdmin=" \
+    -d "urlForm=http://localhost/" \
+    -d "nameForm=Platform Administrator" \
+    -d "loginForm=$ECLASS_ADMIN_USER" \
+    -d "passForm=$ECLASS_ADMIN_PASS" \
+    -d "campusForm=Open eClass" \
+    -d "helpdeskForm=" \
+    -d "helpdeskmail=" \
+    -d "postaddressForm=" \
+    -d "eclass_stud_reg=2" \
+    -d "emailForm=" \
+    -d "institutionForm=GUNet" \
+    -d "institutionUrlForm=https://www.gunet.gr/" \
+    -d "email_announce=" \
+    -d "email_bounces=" \
+    -d "email_transport=mail" \
+    -d "theme_selection=0" \
+    -d "homepage_intro="
+}
+
 resolve_seed_user() {
   grep -E '^[[:space:]]*username:' "$PREFIX/seed/seed.yaml" \
     | head -1 \
@@ -94,6 +133,20 @@ step "waiting for mock CAS on $SSO_PROBE"
 if ! wait_for_sso_http; then
   err "mock CAS did not respond on $SSO_PROBE within $((WAIT_SSO_RETRIES * WAIT_SSO_INTERVAL))s"
   exit 1
+fi
+
+if eclass_is_installed; then
+  step "openeclass already installed (config/config.php present)"
+else
+  step "performing openeclass first-time install"
+  if ! run_eclass_install; then
+    err "openeclass install POST failed"
+    exit 1
+  fi
+  if ! eclass_is_installed; then
+    err "openeclass install completed without writing $ECLASS_CONFIG_PATH"
+    exit 1
+  fi
 fi
 
 SEED_USER=$(resolve_seed_user)

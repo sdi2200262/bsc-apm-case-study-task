@@ -22,18 +22,19 @@ VALUES (
 ON DUPLICATE KEY UPDATE password = 'cas';
 
 -- Courses.
-INSERT INTO course (code, title, visible, created, public_code, lang) VALUES
-  ('CS101', 'Introduction to Computer Science', 2, NOW(), 'CS101', 'el'),
-  ('MATH201', 'Linear Algebra', 2, NOW(), 'MATH201', 'el'),
-  ('PHYS150', 'Classical Mechanics', 2, NOW(), 'PHYS150', 'el'),
-  ('BIO110', 'General Biology', 2, NOW(), 'BIO110', 'el')
+INSERT INTO course (code, title, keywords, visible, created, public_code, lang) VALUES
+  ('CS101', 'Introduction to Computer Science', '', 2, NOW(), 'CS101', 'el'),
+  ('MATH201', 'Linear Algebra', '', 2, NOW(), 'MATH201', 'el'),
+  ('PHYS150', 'Classical Mechanics', '', 2, NOW(), 'PHYS150', 'el'),
+  ('BIO110', 'General Biology', '', 2, NOW(), 'BIO110', 'el')
 ON DUPLICATE KEY UPDATE title = VALUES(title);
 
 -- Test user enrolled in every course.
-INSERT INTO course_user (course_id, user_id, status, reg_date)
+INSERT INTO course_user (course_id, user_id, status, reg_date, document_timestamp)
 SELECT id,
        (SELECT id FROM user WHERE username = 'student1'),
        5,
+       NOW(),
        NOW()
 FROM course WHERE code IN ('CS101', 'MATH201', 'PHYS150', 'BIO110')
 ON DUPLICATE KEY UPDATE status = 5;
