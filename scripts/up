@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2025-2026
+#
+# Bring the testing environment up. Idempotent.
+#
+# Steps:
+#   1. docker compose up -d
+#   2. wait for the database healthcheck
+#   3. wait for openeclass to respond on http://localhost/
+#   4. wait for the mock CAS to respond on https://localhost:8082/health
+#   5. apply seed/seed.sql when the seeded user is absent
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PREFIX="$(cd "$SCRIPT_DIR/.." && pwd)"
+COMPOSE=(docker compose -f "$PREFIX/compose.yaml")
+
+DB_CONTAINER="eclass-env-db-1"
+DB_USER=root
+DB_PASS=secret
+DB_NAME=eclass
+
+ECLASS_PROBE="http://localhost/"
+SSO_PROBE="https://localhost:8082/health"
+
+WAIT_DB_RETRIES=60
+WAIT_DB_INTERVAL=2
+WAIT_HTTP_RETRIES=90
+WAIT_HTTP_INTERVAL=2
+WAIT_SSO_RETRIES=30
+WAIT_SSO_INTERVAL=2
+
+err() { echo "$*" >&2; }
+step() { echo "==> $*"; }
+
+wait_for_db_health() {
+  for _ in $(seq 1 "$WAIT_DB_RETRIES"); do
+    if "${COMPOSE[@]}" ps --format '{{.Service}} {{.Health}}' \
+        | grep -E '^db[[:space:]]+healthy$' >/dev/null; then
+      return 0
+    fi
+    sleep "$WAIT_DB_INTERVAL"
+  done
+  return 1
+}
+
+wait_for_eclass_http() {
+  for _ in $(seq 1 "$WAIT_HTTP_RETRIES"); do
+    if curl -fsS -m 5 "$ECLASS_PROBE" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "$WAIT_HTTP_INTERVAL"
+  done
+  return 1
+}
+
+wait_for_sso_http() {
+  for _ in $(seq 1 "$WAIT_SSO_RETRIES"); do
+    if curl -fskS -m 5 "$SSO_PROBE" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep "$WAIT_SSO_INTERVAL"
+  done
+  return 1
+}
+
+resolve_seed_user() {
+  grep -E '^[[:space:]]*username:' "$PREFIX/seed/seed.yaml" \
+    | head -1 \
+    | awk -F'[:][[:space:]]*' '{print $2}' \
+    | tr -d '"' \
+    | tr -d "'" \
+    | tr -d '[:space:]'
+}
+
+step "starting compose stack"
+"${COMPOSE[@]}" up -d
+
+step "waiting for database healthcheck"
+if ! wait_for_db_health; then
+  err "db did not become healthy within $((WAIT_DB_RETRIES * WAIT_DB_INTERVAL))s"
+  exit 1
+fi
+
+step "waiting for openeclass on $ECLASS_PROBE"
+if ! wait_for_eclass_http; then
+  err "openeclass did not respond on $ECLASS_PROBE within $((WAIT_HTTP_RETRIES * WAIT_HTTP_INTERVAL))s"
+  exit 1
+fi
+
+step "waiting for mock CAS on $SSO_PROBE"
+if ! wait_for_sso_http; then
+  err "mock CAS did not respond on $SSO_PROBE within $((WAIT_SSO_RETRIES * WAIT_SSO_INTERVAL))s"
+  exit 1
+fi
+
+SEED_USER=$(resolve_seed_user)
+if [ -z "$SEED_USER" ]; then
+  err "could not resolve the seed user from $PREFIX/seed/seed.yaml"
+  exit 1
+fi
+
+step "checking whether the seed user '$SEED_USER' is present"
+seeded=$(docker exec "$DB_CONTAINER" \
+  mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -sN \
+  -e "SELECT 1 FROM user WHERE username='$SEED_USER' LIMIT 1" 2>/dev/null || true)
+
+if [ -z "$seeded" ]; then
+  step "applying seed/seed.sql"
+  docker exec -i "$DB_CONTAINER" \
+    mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" \
+    < "$PREFIX/seed/seed.sql"
+fi
+
+step "ready"
+echo "openeclass: http://localhost/"
+echo "mock CAS:   https://localhost:8082/  (eclass container reaches it at https://172.17.0.1:8082/)"

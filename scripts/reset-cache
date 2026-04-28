@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2025-2026
+#
+# Restart the openeclass service to clear PHP opcache and any session
+# state held in /tmp.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PREFIX="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+step() { echo "==> $*"; }
+
+step "restarting eclass service"
+exec docker compose -f "$PREFIX/compose.yaml" restart eclass
