@@ -10,7 +10,7 @@
 #   3. wait for openeclass to respond on http://localhost/
 #   4. wait for the mock CAS to respond on https://localhost:8082/health
 #   5. perform openeclass first-time install when config/config.php is absent
-#   6. apply seed/seed.sql when the seeded user is absent
+#   6. apply seed/seed.sql when the database has no course rows yet
 
 set -euo pipefail
 
@@ -105,13 +105,12 @@ run_eclass_install() {
     -d "homepage_intro="
 }
 
-resolve_seed_user() {
-  grep -E '^[[:space:]]*username:' "$PREFIX/seed/seed.yaml" \
-    | head -1 \
-    | awk -F'[:][[:space:]]*' '{print $2}' \
-    | tr -d '"' \
-    | tr -d "'" \
-    | tr -d '[:space:]'
+seed_already_applied() {
+  local count
+  count=$(docker exec "$DB_CONTAINER" \
+    mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -sN \
+    -e "SELECT COUNT(*) FROM course" 2>/dev/null || echo "0")
+  [ "${count:-0}" -gt 0 ]
 }
 
 step "starting compose stack"
@@ -149,18 +148,9 @@ else
   fi
 fi
 
-SEED_USER=$(resolve_seed_user)
-if [ -z "$SEED_USER" ]; then
-  err "could not resolve the seed user from $PREFIX/seed/seed.yaml"
-  exit 1
-fi
-
-step "checking whether the seed user '$SEED_USER' is present"
-seeded=$(docker exec "$DB_CONTAINER" \
-  mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -sN \
-  -e "SELECT 1 FROM user WHERE username='$SEED_USER' LIMIT 1" 2>/dev/null || true)
-
-if [ -z "$seeded" ]; then
+if seed_already_applied; then
+  step "seed already applied (course rows present)"
+else
   step "applying seed/seed.sql"
   docker exec -i "$DB_CONTAINER" \
     mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" \
