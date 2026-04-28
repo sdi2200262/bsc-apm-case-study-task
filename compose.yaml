@@ -31,6 +31,7 @@ services:
       - config_data:/var/www/html/config
       - courses_data:/var/www/html/courses
       - video_data:/var/www/html/video
+      - ./seed:/srv/seed:ro
     environment:
       - MYSQL_LOCATION=db
       - MYSQL_ROOT_USER=root

@@ -10,7 +10,7 @@
 #   3. wait for openeclass to respond on http://localhost/
 #   4. wait for the mock CAS to respond on https://localhost:8082/health
 #   5. perform openeclass first-time install when config/config.php is absent
-#   6. apply seed/seed.sql when the database has no course rows yet
+#   6. apply the seed via php inside the eclass container
 
 set -euo pipefail
 
@@ -18,7 +18,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PREFIX="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMPOSE=(docker compose -f "$PREFIX/compose.yaml")
 
-DB_CONTAINER="bsc-apm-env-db-1"
 ECLASS_CONTAINER="bsc-apm-env-eclass-1"
 DB_USER=root
 DB_PASS=secret
@@ -105,14 +104,6 @@ run_eclass_install() {
     -d "homepage_intro="
 }
 
-seed_already_applied() {
-  local count
-  count=$(docker exec "$DB_CONTAINER" \
-    mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" -sN \
-    -e "SELECT COUNT(*) FROM course" 2>/dev/null || echo "0")
-  [ "${count:-0}" -gt 0 ]
-}
-
 step "starting compose stack"
 "${COMPOSE[@]}" up -d
 
@@ -148,14 +139,8 @@ else
   fi
 fi
 
-if seed_already_applied; then
-  step "seed already applied (course rows present)"
-else
-  step "applying seed/seed.sql"
-  docker exec -i "$DB_CONTAINER" \
-    mysql -u"$DB_USER" -p"$DB_PASS" "$DB_NAME" \
-    < "$PREFIX/seed/seed.sql"
-fi
+step "applying seed via php"
+docker exec "$ECLASS_CONTAINER" php /srv/seed/seed.php
 
 step "ready"
 echo "openeclass: http://localhost/"
