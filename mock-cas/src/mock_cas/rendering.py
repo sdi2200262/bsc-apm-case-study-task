@@ -13,9 +13,11 @@ dispatch.
 from __future__ import annotations
 
 import datetime as _dt
+import os
 import re
 import secrets
 import urllib.parse
+from pathlib import Path
 
 from .config import Config
 
@@ -25,6 +27,24 @@ _SAML_ARTIFACT_RE = re.compile(
     re.DOTALL,
 )
 _SAML_REQUEST_ID_RE = re.compile(r"RequestID=\"([^\"]+)\"")
+
+
+def _fixtures_dir() -> Path:
+    """Resolve the directory containing the HTML fixtures.
+
+    Honours the ``MOCK_CAS_FIXTURES_DIR`` environment variable when set;
+    otherwise falls back to ``<package-root>/fixtures``, which works
+    when the package is run from a source checkout.
+    """
+    env = os.environ.get("MOCK_CAS_FIXTURES_DIR")
+    if env:
+        return Path(env)
+    return Path(__file__).resolve().parent.parent.parent / "fixtures"
+
+
+def _read_fixture(name: str) -> str:
+    path = _fixtures_dir() / name
+    return path.read_text(encoding="utf-8")
 
 
 def now_iso() -> str:
@@ -75,92 +95,40 @@ def extract_saml_request_id(body: str) -> str | None:
     return match.group(1) if match else None
 
 
-_LOGIN_HTML_TEMPLATE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>BSc Thesis Mock CAS - Login</title>
-</head>
-<body>
-<header>
-<h1>BSc Thesis Mock CAS</h1>
-<p>Mock authentication service for the BSc Thesis Case Study testing environment.
-This is not a real University of Athens login page.</p>
-</header>
-<main>
-{error_block}
-<form method="post" id="fm1" action="login">
-<label>Username <input name="username" type="text" autocomplete="off"></label>
-<label>Password <input name="password" type="password" autocomplete="off"></label>
-<input type="hidden" name="execution" value="{execution}">
-<input type="hidden" name="_eventId" value="submit">
-<input type="hidden" name="geolocation" value="">
-<input type="hidden" name="service" value="{service}">
-<button type="submit">Sign in</button>
-</form>
-</main>
-</body>
-</html>
-"""
-
-
-_ERROR_BLOCK_TEMPLATE = "<div id=\"msg\" class=\"error\">{message}</div>\n"
-
-
-_LOGOUT_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>BSc Thesis Mock CAS - Logout</title>
-</head>
-<body>
-<header>
-<h1>BSc Thesis Mock CAS</h1>
-<p>Mock authentication service for the BSc Thesis Case Study testing environment.</p>
-</header>
-<main>
-<p>You have been logged out of the mock CAS. The mock ticket-granting cookie has been cleared.</p>
-</main>
-</body>
-</html>
-"""
-
-
-_NOT_FOUND_HTML_TEMPLATE = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>BSc Thesis Mock CAS - Not Found</title>
-</head>
-<body>
-<h1>404 Not Found</h1>
-<p>The mock CAS does not serve the path <code>{path}</code>.</p>
-<p>This is the mock authentication service for the BSc Thesis Case Study testing environment.</p>
-</body>
-</html>
-"""
-
-
 def render_login_html(*, service: str, execution: str, error: str | None) -> str:
-    """Render the mock login form."""
-    error_block = (
-        _ERROR_BLOCK_TEMPLATE.format(message=xml_escape(error)) if error else ""
-    )
-    return _LOGIN_HTML_TEMPLATE.format(
-        service=xml_escape(service),
-        execution=xml_escape(execution),
-        error_block=error_block,
+    """Render the mock login form.
+
+    Args:
+        service: The CAS service-URL parameter, embedded as a hidden input.
+        execution: The opaque execution token, embedded as a hidden input.
+        error: Optional credential-error message; renders the error block
+            inside the form when present.
+
+    Returns:
+        The rendered HTML body.
+    """
+    template = _read_fixture("login.html")
+    if error:
+        block = _read_fixture("login_error_block.html").replace(
+            "{{MESSAGE}}", xml_escape(error)
+        )
+    else:
+        block = ""
+    return (
+        template.replace("{{ERROR_BLOCK}}", block)
+        .replace("{{SERVICE}}", xml_escape(service))
+        .replace("{{EXECUTION}}", xml_escape(execution))
     )
 
 
 def render_logout_html() -> str:
     """Render the mock logout confirmation."""
-    return _LOGOUT_HTML
+    return _read_fixture("logout.html")
 
 
 def render_not_found_html(path: str) -> str:
     """Render a mock-identifying 404 page that references ``path``."""
-    return _NOT_FOUND_HTML_TEMPLATE.format(path=xml_escape(path))
+    return _read_fixture("not_found.html").replace("{{PATH}}", xml_escape(path))
 
 
 def render_cas_invalid_request_xml(marker: str) -> str:

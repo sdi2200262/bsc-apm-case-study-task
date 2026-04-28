@@ -9,11 +9,13 @@ WORKDIR /opt/mock-cas
 
 COPY pyproject.toml ./
 COPY src/ ./src/
+COPY fixtures/ ./fixtures/
 
 RUN pip install --no-cache-dir .
 
 ENV MOCK_CAS_CONFIG=/etc/mock-cas/cas-config.json \
-    MOCK_CAS_PORT=8082
+    MOCK_CAS_PORT=8082 \
+    MOCK_CAS_FIXTURES_DIR=/opt/mock-cas/fixtures
 
 EXPOSE 8082
 
