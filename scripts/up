@@ -17,7 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PREFIX="$(cd "$SCRIPT_DIR/.." && pwd)"
 COMPOSE=(docker compose -f "$PREFIX/compose.yaml")
 
-DB_CONTAINER="eclass-env-db-1"
+DB_CONTAINER="bsc-apm-env-db-1"
 DB_USER=root
 DB_PASS=secret
 DB_NAME=eclass

@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 FROM python:3.12-alpine
 
-LABEL org.opencontainers.image.title="bsc-mock-cas"
-LABEL org.opencontainers.image.description="Mock CAS authentication service for the BSc Thesis Case Study testing environment."
+LABEL org.opencontainers.image.title="bsc-apm-mock-cas"
+LABEL org.opencontainers.image.description="Mock CAS authentication service for the BSc APM Case Study testing environment."
 LABEL org.opencontainers.image.licenses="GPL-3.0-or-later"
 
 WORKDIR /opt/mock-cas

@@ -1,4 +1,4 @@
-name: eclass-env
+name: bsc-apm-env
 
 services:
   db:
@@ -21,7 +21,7 @@ services:
       start_period: 5s
 
   eclass:
-    image: bsc-mock/openeclass:dev
+    image: bsc-apm/openeclass:dev
     depends_on:
       db:
         condition: service_healthy
@@ -43,7 +43,7 @@ services:
       - DEFAULT_LANGUAGE=el
 
   sso:
-    image: bsc-mock/mock-cas:dev
+    image: bsc-apm/mock-cas:dev
     ports:
       - "8082:8082"
     volumes:

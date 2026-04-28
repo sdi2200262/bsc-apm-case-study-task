@@ -15,11 +15,11 @@ This document describes how to install and operate the participant testing envir
 
    ```bash
    ARCH=$(uname -m)
-   curl -L https://github.com/sdi2200262/bsc-apm-case-study-env/releases/download/<release-tag>/bsc-mock-${ARCH}.tar.gz \
+   curl -L https://github.com/sdi2200262/bsc-apm-case-study-env/releases/download/<release-tag>/bsc-apm-${ARCH}.tar.gz \
        | tar -xz -C <prefix>
    ```
 
-   `<prefix>` is the directory where the environment will live. Recommended: `~/.bsc-mock/`. The participant chooses; there is no silent default.
+   `<prefix>` is the directory where the environment will live. Recommended: `~/.bsc-apm/`. The participant chooses; there is no silent default.
 
 2. Run the install script from inside the extracted directory:
 

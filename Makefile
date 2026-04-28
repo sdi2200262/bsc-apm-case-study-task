@@ -1,10 +1,10 @@
-# Release-prep targets for the BSc Thesis Case Study testing environment.
+# Release-prep targets for the BSc APM Case Study testing environment.
 #
 # Targets:
 #   seed          Regenerate seed/seed.sql and mock-cas/cas-config.json from seed/seed.yaml.
 #   build-images  Build the openeclass and mock CAS images.
 #   save-images   Save both images to release/<image>-<arch>.tar.
-#   release       Assemble the GitHub release tarball at release/bsc-mock-<arch>.tar.gz.
+#   release       Assemble the GitHub release tarball at release/bsc-apm-<arch>.tar.gz.
 #   clean         Remove the release/ directory.
 #   help          Print this listing.
 
@@ -13,12 +13,12 @@ OPENECLASS_PATH ?= ../openeclass
 RELEASE_DIR ?= release
 STAGING_DIR = $(RELEASE_DIR)/staging
 
-OPENECLASS_TAG = bsc-mock/openeclass:dev
-MOCK_CAS_TAG = bsc-mock/mock-cas:dev
+OPENECLASS_TAG = bsc-apm/openeclass:dev
+MOCK_CAS_TAG = bsc-apm/mock-cas:dev
 
 OPENECLASS_TAR = $(RELEASE_DIR)/openeclass-image-$(ARCH).tar
 MOCK_CAS_TAR = $(RELEASE_DIR)/mock-cas-image-$(ARCH).tar
-RELEASE_TARBALL = $(RELEASE_DIR)/bsc-mock-$(ARCH).tar.gz
+RELEASE_TARBALL = $(RELEASE_DIR)/bsc-apm-$(ARCH).tar.gz
 
 UV ?= uv
 

@@ -1,6 +1,6 @@
 # Architecture
 
-The participant testing environment runs three services in one Docker Compose stack under the pinned project name `eclass-env`. Container names are deterministic regardless of install path: `eclass-env-db-1`, `eclass-env-eclass-1`, `eclass-env-sso-1`.
+The participant testing environment runs three services in one Docker Compose stack under the pinned project name `bsc-apm-env`. Container names are deterministic regardless of install path: `bsc-apm-env-db-1`, `bsc-apm-env-eclass-1`, `bsc-apm-env-sso-1`.
 
 ## Services
 
@@ -10,15 +10,15 @@ MariaDB 10.11 from the upstream multi-arch image. Holds the openeclass database;
 
 ### `eclass`
 
-Open eClass platform from upstream gunet, built into a local image (`bsc-mock/openeclass:dev`) at release-prep time. Pinned to a specific upstream commit per release. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
+Open eClass platform from upstream gunet, built into a local image (`bsc-apm/openeclass:dev`) at release-prep time. Pinned to a specific upstream commit per release. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
 
 The image is exactly the upstream platform; no sidecars are baked in, and image identity does not diverge from the pinned commit.
 
 ### `sso`
 
-Mock authentication service. Custom image (`bsc-mock/mock-cas:dev`) built from the `mock-cas/` source in this repository. Implements the Apereo CAS / SAML 1.1 surface that the [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reference client expects against the University of Athens deployment. Exposes port 8082 on the host with self-signed TLS; the certificates live under `<prefix>/certs/` and are mounted read-only into the container.
+Mock authentication service. Custom image (`bsc-apm/mock-cas:dev`) built from the `mock-cas/` source in this repository. Implements the Apereo CAS / SAML 1.1 surface that the [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reference client expects against the University of Athens deployment. Exposes port 8082 on the host with self-signed TLS; the certificates live under `<prefix>/certs/` and are mounted read-only into the container.
 
-The mock identifies itself as a mock to inspecting agents through page copy, the `Server: bsc-mock-cas` response header, and inline XML comments inside CAS and SAML responses.
+The mock identifies itself as a mock to inspecting agents through page copy, the `Server: bsc-apm-mock-cas` response header, and inline XML comments inside CAS and SAML responses.
 
 ## Network
 

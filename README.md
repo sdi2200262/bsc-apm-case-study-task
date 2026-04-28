@@ -1,6 +1,6 @@
 # BSc APM Case Study - Participant Testing Environment
 
-Portable testing environment for the BSc Thesis Case Study evaluating the [Agentic Project Management (APM)](https://github.com/sdi2200262/agentic-project-management) framework against other approaches in AI-assisted software development.
+Portable testing environment for the BSc APM Case Study evaluating the [Agentic Project Management (APM)](https://github.com/sdi2200262/agentic-project-management) framework against other approaches in AI-assisted software development.
 
 ## Overview
 
@@ -59,4 +59,4 @@ GPL-3.0-or-later. See [LICENSE](LICENSE).
 
 ---
 
-*Part of BSc Thesis Case Study evaluating the Agentic Project Management (APM) framework - Department of Informatics and Telecommunications, University of Athens.*
+*Part of BSc APM Case Study evaluating the Agentic Project Management (APM) framework - Department of Informatics and Telecommunications, University of Athens.*
