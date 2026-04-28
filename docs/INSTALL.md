@@ -15,7 +15,7 @@ This document describes how to install and operate the participant testing envir
 
    ```bash
    ARCH=$(uname -m)
-   curl -L https://github.com/sdi2200262/bsc-apm-case-study-env/releases/download/vX.Y.Z/bsc-mock-vX.Y.Z-${ARCH}.tar.gz \
+   curl -L https://github.com/sdi2200262/bsc-apm-case-study-env/releases/download/<release-tag>/bsc-mock-${ARCH}.tar.gz \
        | tar -xz -C <prefix>
    ```
 

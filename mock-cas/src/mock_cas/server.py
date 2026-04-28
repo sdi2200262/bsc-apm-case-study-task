@@ -60,12 +60,7 @@ def run(config: Config | None = None) -> None:
     context.load_cert_chain(certfile=str(cert), keyfile=str(key))
     server.socket = context.wrap_socket(server.socket, server_side=True)
 
-    logger.info(
-        "mock CAS listening on https://%s:%d (version %s)",
-        bind_host,
-        bind_port,
-        cfg.version,
-    )
+    logger.info("mock CAS listening on https://%s:%d", bind_host, bind_port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

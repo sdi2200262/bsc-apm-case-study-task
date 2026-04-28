@@ -36,7 +36,6 @@ class Config:
         cert_path: Path to the TLS certificate file mounted into the image.
         key_path: Path to the TLS private-key file mounted into the image.
         bridge_subnet: CIDR for /admin/reset source-IP gating.
-        version: Version string included in the Server header and XML comments.
     """
 
     username: str
@@ -50,7 +49,6 @@ class Config:
     cert_path: str = "/etc/mock-cas/certs/sso_cert.pem"
     key_path: str = "/etc/mock-cas/certs/sso_key.pem"
     bridge_subnet: str = "172.16.0.0/12"
-    version: str = "0.1.0"
 
 
 _DEFAULTS = Config(

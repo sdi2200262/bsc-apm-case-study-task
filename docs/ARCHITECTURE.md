@@ -10,15 +10,15 @@ MariaDB 10.11 from the upstream multi-arch image. Holds the openeclass database;
 
 ### `eclass`
 
-Open eClass platform from upstream gunet, built into a local image (`bsc-mock/openeclass:<version>`) at release-prep time. Pinned to a specific upstream commit per release. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
+Open eClass platform from upstream gunet, built into a local image (`bsc-mock/openeclass:dev`) at release-prep time. Pinned to a specific upstream commit per release. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
 
 The image is exactly the upstream platform; no sidecars are baked in, and image identity does not diverge from the pinned commit.
 
 ### `sso`
 
-Mock authentication service. Custom image (`bsc-mock/mock-cas:<version>`) built from the `mock-cas/` source in this repository. Implements the Apereo CAS / SAML 1.1 surface that the [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reference client expects against the University of Athens deployment. Exposes port 8082 on the host with self-signed TLS; the certificates live under `<prefix>/certs/` and are mounted read-only into the container.
+Mock authentication service. Custom image (`bsc-mock/mock-cas:dev`) built from the `mock-cas/` source in this repository. Implements the Apereo CAS / SAML 1.1 surface that the [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reference client expects against the University of Athens deployment. Exposes port 8082 on the host with self-signed TLS; the certificates live under `<prefix>/certs/` and are mounted read-only into the container.
 
-The mock identifies itself as a mock to inspecting agents through page copy, response headers (`Server: bsc-mock-cas/<version>`), and inline XML comments inside CAS and SAML responses.
+The mock identifies itself as a mock to inspecting agents through page copy, the `Server: bsc-mock-cas` response header, and inline XML comments inside CAS and SAML responses.
 
 ## Network
 

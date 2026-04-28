@@ -56,7 +56,7 @@ class MockCASHandler(BaseHTTPRequestHandler):
 
     def version_string(self) -> str:
         """Override the stdlib server-string to the mock's identifying value."""
-        return f"bsc-mock-cas/{self.config.version}"
+        return "bsc-mock-cas"
 
     def log_message(self, format: str, *args: object) -> None:  # noqa: A002
         """Route stdlib log messages through the package logger."""
@@ -149,7 +149,7 @@ class MockCASHandler(BaseHTTPRequestHandler):
         query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
         ticket = (query.get("ticket") or [""])[0]
         service = (query.get("service") or [""])[0]
-        marker = xml_comment_marker(self.config.version)
+        marker = xml_comment_marker()
 
         if not ticket or not service:
             self._send_cas_xml(200, render_cas_invalid_request_xml(marker))
@@ -174,7 +174,7 @@ class MockCASHandler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length).decode("utf-8") if length else ""
         artifact = extract_saml_artifact(raw)
         request_id = extract_saml_request_id(raw) or "UNKNOWN"
-        marker = xml_comment_marker(self.config.version)
+        marker = xml_comment_marker()
 
         if not artifact:
             body = render_saml_failure_envelope(
