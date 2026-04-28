@@ -79,7 +79,7 @@ eclass_is_installed() {
 run_eclass_install() {
   curl -fsS -o /dev/null -X POST "$ECLASS_INSTALL_URL" \
     -d "install8=1" \
-    -d "lang=en" \
+    -d "lang=el" \
     -d "welcomeScreen=1" \
     -d "dbHostForm=db" \
     -d "dbUsernameForm=$DB_USER" \
