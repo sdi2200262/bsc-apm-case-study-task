@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2025-2026
+"""Mock CAS authentication service for the BSc Thesis Case Study testing environment.
+
+The package implements a small CAS / SAML 1.1 server that satisfies the
+surface the eclass-mcp-server reference client expects against the
+University of Athens deployment. The service identifies itself as a mock
+to inspecting agents through the Server header, page copy, and inline XML
+comments inside its CAS and SAML responses.
+"""
+
+from __future__ import annotations
+
+__version__ = "0.1.0"
