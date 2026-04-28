@@ -141,10 +141,10 @@ else
 fi
 
 step "ensuring courses/temp exists for htmlpurifier cache"
-docker exec "$ECLASS_CONTAINER" mkdir -p /var/www/html/courses/temp
+docker exec -u nginx "$ECLASS_CONTAINER" mkdir -p /var/www/html/courses/temp
 
 step "applying seed via php"
-docker exec "$ECLASS_CONTAINER" php /srv/seed/seed.php
+docker exec -u nginx "$ECLASS_CONTAINER" php /srv/seed/seed.php
 
 step "ready"
 echo "openeclass: http://localhost/"
