@@ -16,6 +16,7 @@ KEY_FILE="$CERTS_DIR/sso_key.pem"
 CERT_DAYS=365
 CERT_SUBJECT='/CN=172.17.0.1'
 CERT_SAN='subjectAltName=IP:172.17.0.1,IP:127.0.0.1,DNS:localhost'
+DOTENV_FILE="$PREFIX/.env"
 
 err() { echo "$*" >&2; }
 step() { echo "==> $*"; }
@@ -57,6 +58,30 @@ if [ ! -f "$CERT_FILE" ] || [ ! -f "$KEY_FILE" ]; then
   chmod 600 "$KEY_FILE"
 else
   step "SSL certificates already present in $CERTS_DIR"
+fi
+
+if [ ! -f "$DOTENV_FILE" ]; then
+  step "writing $DOTENV_FILE for local development"
+  cat > "$DOTENV_FILE" <<'EOF'
+# Credentials and connection settings for the bundled testing
+# environment. To develop against the mock locally, copy this file
+# and the certs/ directory beside it into your eclass-mcp-server
+# checkout. The cert paths below are workspace-relative, so once
+# .env and certs/sso_cert.pem are both inside the checkout, the
+# server resolves them correctly when run from that directory.
+
+ECLASS_URL=http://localhost
+ECLASS_USERNAME=student1
+ECLASS_PASSWORD=mockpass123
+ECLASS_SSO_DOMAIN=172.17.0.1:8082
+ECLASS_SSO_PROTOCOL=https
+SSL_CERT_FILE=./certs/sso_cert.pem
+REQUESTS_CA_BUNDLE=./certs/sso_cert.pem
+CURL_CA_BUNDLE=./certs/sso_cert.pem
+EOF
+  chmod 644 "$DOTENV_FILE"
+else
+  step ".env already present at $DOTENV_FILE"
 fi
 
 step "ready, run ./scripts/up"

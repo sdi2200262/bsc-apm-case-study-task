@@ -27,6 +27,9 @@ dist/
 certs/*.pem
 certs/*.key
 
+# Locally generated participant credentials file (produced by ./install)
+.env
+
 # Local docker overrides
 compose.override.yaml
 docker-compose.override.yaml
