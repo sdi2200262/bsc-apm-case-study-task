@@ -1,0 +1,53 @@
+name: Build amd64 release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out env repo
+        uses: actions/checkout@v4
+
+      - name: Check out openeclass at Release_4.3.3
+        uses: actions/checkout@v4
+        with:
+          repository: gunet/openeclass
+          ref: Release_4.3.3
+          path: openeclass
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Build release tarball
+        run: make ARCH=amd64 OPENECLASS_PATH=./openeclass release
+
+      - name: Smoke-test the tarball in a fresh prefix
+        run: |
+          mkdir -p /tmp/smoke
+          tar -xzf release/bsc-apm-amd64.tar.gz -C /tmp/smoke
+          cd /tmp/smoke
+          ./install
+          ./scripts/up
+          ./scripts/status
+          ./scripts/down
+
+      - name: Publish amd64 release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=bsc-apm-case-study-env
+          TITLE="Participant testing environment (amd64)"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" release/bsc-apm-amd64.tar.gz --clobber
+          else
+            gh release create "$TAG" \
+              --title "$TITLE" \
+              --target "$GITHUB_SHA" \
+              --latest=true \
+              release/bsc-apm-amd64.tar.gz
+          fi
