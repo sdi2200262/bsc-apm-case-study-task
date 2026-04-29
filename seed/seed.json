@@ -28,21 +28,11 @@
         {
           "days_ago": 0,
           "title": "Algorithm review session today",
-          "body": "An algorithm review session takes place today at 14:00 in the main hall."
-        },
-        {
-          "days_ago": 5,
-          "title": "Office hours updated",
-          "body": "Office hours move to Wednesday 14:00 to 16:00 starting this week."
-        },
-        {
-          "days_ago": 10,
-          "title": "Reading list posted",
-          "body": "The week 5 reading list is available in the course materials."
+          "body": "An algorithm review session is scheduled for this afternoon at 14:00 in the main lecture hall."
         },
         {
           "days_ago": 15,
-          "title": "Tutorial relocated",
+          "title": "Tutorial relocated to building B",
           "body": "The Thursday tutorial moves to building B from this week onwards."
         },
         {
@@ -51,9 +41,34 @@
           "body": "Welcome to the course. Topics include complexity theory and basic data structures."
         },
         {
-          "days_ago": 45,
-          "title": "Course outline released",
-          "body": "The course outline and syllabus are now available on the portal."
+          "days_ago": 60,
+          "title": "Pre-term reading list posted",
+          "body": "The recommended reading list for the upcoming semester is now available on the portal."
+        }
+      ]
+    },
+    {
+      "code": "PHYS150",
+      "title": "Classical Mechanics",
+      "visible": 2,
+      "public_code": "PHYS150",
+      "lang": "el",
+      "enrolled": true,
+      "announcements": [
+        {
+          "days_ago": 0,
+          "title": "Office hours today",
+          "body": "Office hours run from 14:00 to 16:00 today in room A-12."
+        },
+        {
+          "days_ago": 15,
+          "title": "Problem set 3 deadline reminder",
+          "body": "Problem set 3 is due this Friday; the deadline cannot be extended further."
+        },
+        {
+          "days_ago": 30,
+          "title": "Lab schedule confirmed",
+          "body": "Laboratory sessions begin in week 3 and run weekly through the term."
         }
       ]
     },
@@ -65,56 +80,6 @@
       "lang": "el",
       "enrolled": true,
       "announcements": []
-    },
-    {
-      "code": "PHYS150",
-      "title": "Classical Mechanics",
-      "visible": 2,
-      "public_code": "PHYS150",
-      "lang": "el",
-      "enrolled": true,
-      "announcements": [
-        {
-          "days_ago": 5,
-          "title": "Problem set 3 deadline extended",
-          "body": "Problem set 3 is now due on the following Friday; the deadline has been extended."
-        },
-        {
-          "days_ago": 35,
-          "title": "Lab schedule confirmed",
-          "body": "Laboratory sessions begin in week 3 and run weekly through the term."
-        }
-      ]
-    },
-    {
-      "code": "BIO110",
-      "title": "General Biology",
-      "visible": 2,
-      "public_code": "BIO110",
-      "lang": "el",
-      "enrolled": true,
-      "announcements": [
-        {
-          "days_ago": 20,
-          "title": "Field trip on Saturday",
-          "body": "The optional field trip departs at 09:00 from the main entrance."
-        }
-      ]
-    },
-    {
-      "code": "PSYC101",
-      "title": "Introduction to Psychology",
-      "visible": 2,
-      "public_code": "PSYC101",
-      "lang": "el",
-      "enrolled": false,
-      "announcements": [
-        {
-          "days_ago": 5,
-          "title": "Methodology workshop",
-          "body": "An introductory methodology workshop runs Tuesday afternoon in room A-12."
-        }
-      ]
     }
   ],
   "admin_announcements": [
@@ -134,12 +99,6 @@
       "days_ago": 30,
       "title": "Library subscriptions renewed",
       "body": "Online library subscriptions have been renewed for the semester.",
-      "lang": "el"
-    },
-    {
-      "days_ago": 60,
-      "title": "Spring term opens",
-      "body": "Spring term enrollments are now open through the portal.",
       "lang": "el"
     }
   ]
