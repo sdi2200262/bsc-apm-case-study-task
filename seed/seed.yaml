@@ -31,15 +31,21 @@ courses:
     lang: el
     enrolled: true
     announcements:
-      - days_ago: 2
-        title: Office hours updated for week 7
+      - days_ago: 0
+        title: Algorithm review session today
+        body: An algorithm review session takes place today at 14:00 in the main hall.
+      - days_ago: 5
+        title: Office hours updated
         body: Office hours move to Wednesday 14:00 to 16:00 starting this week.
       - days_ago: 10
         title: Reading list posted
         body: The week 5 reading list is available in the course materials.
-      - days_ago: 25
+      - days_ago: 15
+        title: Tutorial relocated
+        body: The Thursday tutorial moves to building B from this week onwards.
+      - days_ago: 30
         title: Welcome to CS101
-        body: Welcome to the course. The first lecture covers algorithmic complexity.
+        body: Welcome to the course. Topics include complexity theory and basic data structures.
       - days_ago: 45
         title: Course outline released
         body: The course outline and syllabus are now available on the portal.
@@ -61,7 +67,7 @@ courses:
     announcements:
       - days_ago: 5
         title: Problem set 3 deadline extended
-        body: Problem set 3 is now due on the following Friday.
+        body: Problem set 3 is now due on the following Friday; the deadline has been extended.
       - days_ago: 35
         title: Lab schedule confirmed
         body: Laboratory sessions begin in week 3 and run weekly through the term.
@@ -73,9 +79,9 @@ courses:
     lang: el
     enrolled: true
     announcements:
-      - days_ago: 8
+      - days_ago: 20
         title: Field trip on Saturday
-        body: The optional field trip departs at 09:00 from the main building.
+        body: The optional field trip departs at 09:00 from the main entrance.
 
   - code: PSYC101
     title: Introduction to Psychology
@@ -83,16 +89,23 @@ courses:
     public_code: PSYC101
     lang: el
     enrolled: false
-    announcements: []
+    announcements:
+      - days_ago: 5
+        title: Methodology workshop
+        body: An introductory methodology workshop runs Tuesday afternoon in room A-12.
 
 admin_announcements:
-  - days_ago: 1
-    title: System maintenance Sunday 02:00 to 04:00
-    body: The platform will be unavailable for routine maintenance on Sunday morning.
+  - days_ago: 0
+    title: System maintenance window today
+    body: The platform may be unavailable from 02:00 to 04:00 today for routine maintenance.
     lang: el
   - days_ago: 15
-    title: Updated acceptable use policy
+    title: Acceptable use policy update
     body: The acceptable use policy has been updated; the changes apply immediately.
+    lang: el
+  - days_ago: 30
+    title: Library subscriptions renewed
+    body: Online library subscriptions have been renewed for the semester.
     lang: el
   - days_ago: 60
     title: Spring term opens
