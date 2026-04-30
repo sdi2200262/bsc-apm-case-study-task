@@ -26,7 +26,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "80:80"
+      - "18080:80"
     volumes:
       - config_data:/var/www/html/config
       - courses_data:/var/www/html/courses
@@ -37,7 +37,7 @@ services:
       - MYSQL_ROOT_USER=root
       - MYSQL_ROOT_PASSWORD=secret
       - MYSQL_DB=eclass
-      - BASE_URL=http://localhost
+      - BASE_URL=http://localhost:18080
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin123
       - PHP_MAX_UPLOAD=256M
@@ -46,7 +46,7 @@ services:
   sso:
     image: bsc-apm/mock-cas:dev
     ports:
-      - "8082:8082"
+      - "18443:8082"
     volumes:
       - ./certs:/etc/mock-cas/certs:ro
     environment:

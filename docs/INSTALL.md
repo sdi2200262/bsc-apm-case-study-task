@@ -57,7 +57,7 @@ Once installed, manage the environment with the scripts under `scripts/`:
 
 Participants point their MCP server at:
 
-- `http://localhost/` for the openeclass instance.
-- `https://172.17.0.1:8082/` for the mock authentication service.
+- `http://localhost:18080/` for the openeclass instance.
+- `https://172.17.0.1:18443/` for the mock authentication service.
 
 The full set of environment variables consumed by the reference [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) is documented in [ARCHITECTURE.md](ARCHITECTURE.md).

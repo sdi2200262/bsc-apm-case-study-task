@@ -16,18 +16,18 @@ The image is exactly the upstream platform; no sidecars are baked in, and image 
 
 ### `sso`
 
-Mock authentication service. Custom image (`bsc-apm/mock-cas:dev`) built from the `mock-cas/` source in this repository. Implements the Apereo CAS / SAML 1.1 surface that the [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reference client expects against the University of Athens deployment. Exposes port 8082 on the host with self-signed TLS; the certificates live under `<prefix>/certs/` and are mounted read-only into the container.
+Mock authentication service. Custom image (`bsc-apm/mock-cas:dev`) built from the `mock-cas/` source in this repository. Implements the Apereo CAS / SAML 1.1 surface that the [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reference client expects against the University of Athens deployment. Exposes port 18443 on the host with self-signed TLS (the container itself listens on 8082, remapped at the host); the certificates live under `<prefix>/certs/` and are mounted read-only into the container.
 
 The mock identifies itself as a mock to inspecting agents through page copy, the `Server: bsc-apm-mock-cas` response header, and inline XML comments inside CAS and SAML responses.
 
 ## Network
 
-The three services share the default bridge network the Compose stack creates. The eclass container reaches the mock authentication service through the docker bridge gateway IP `172.17.0.1` on port 8082; this matches the seeded `auth_settings` row inside the openeclass database.
+The three services share the default bridge network the Compose stack creates. The eclass container reaches the mock authentication service through the docker bridge gateway IP `172.17.0.1` on port 18443; this matches the seeded `auth_settings` row inside the openeclass database.
 
 The host reaches:
 
-- `http://localhost/` (port 80) for the openeclass UI and API.
-- `https://172.17.0.1:8082/` for the mock authentication service.
+- `http://localhost:18080/` for the openeclass UI and API.
+- `https://172.17.0.1:18443/` for the mock authentication service.
 
 ## Environment variables consumed by the participant's MCP server
 
@@ -35,10 +35,10 @@ The reference client at [eclass-mcp-server](https://github.com/sdi2200262/eclass
 
 | Variable | Value |
 |---|---|
-| `ECLASS_URL` | `http://localhost` |
+| `ECLASS_URL` | `http://localhost:18080` |
 | `ECLASS_USERNAME` | matches `seed/seed.yaml`'s `user.username` |
 | `ECLASS_PASSWORD` | matches `seed/seed.yaml`'s `user.cas_password` |
-| `ECLASS_SSO_DOMAIN` | `172.17.0.1:8082` |
+| `ECLASS_SSO_DOMAIN` | `172.17.0.1:18443` |
 | `ECLASS_SSO_PROTOCOL` | `https` |
 | `SSL_CERT_FILE` | `<prefix>/certs/sso_cert.pem` |
 | `REQUESTS_CA_BUNDLE` | `<prefix>/certs/sso_cert.pem` |
