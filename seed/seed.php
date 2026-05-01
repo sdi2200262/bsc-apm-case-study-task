@@ -1,6 +1,6 @@
 <?php
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Copyright (C) 2025-2026
+// Copyright (C) BSc APM Case Study 2025-2026
 
 declare(strict_types=1);
 

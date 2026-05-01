@@ -43,6 +43,5 @@ The reference client at [eclass-mcp-server](https://github.com/sdi2200262/eclass
 | `SSL_CERT_FILE` | `<prefix>/certs/sso_cert.pem` |
 | `REQUESTS_CA_BUNDLE` | `<prefix>/certs/sso_cert.pem` |
 | `CURL_CA_BUNDLE` | `<prefix>/certs/sso_cert.pem` |
-| `PYTHONHTTPSVERIFY` | `0` |
 
-The grading machine sets these from its resolved `mock_root` path; participants set them in their MCP server's `.env` (the participant guide carries the concrete values once the seed data is finalised).
+The grading machine sets these from its resolved `mock_root` path; participants set them in their MCP server's `.env`. The participant guide carries the concrete values.

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) BSc APM Case Study 2025-2026
+#
 # Release-prep targets for the BSc APM Case Study testing environment.
 #
 # Targets:

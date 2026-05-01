@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """Runtime configuration loader for the mock CAS service.
 
 Reads a JSON configuration file describing the single mock test user and
 the runtime parameters of the service. When the configuration file is
-absent (the case during early development before the seed pipeline lands),
-defaults matching the design's seed shape are returned so the service is
-runnable in isolation.
+absent, built-in defaults are returned so the service is runnable
+without a mounted config file.
 """
 
 from __future__ import annotations

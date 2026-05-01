@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 #
 # Probe the testing environment and report whether it is healthy.
 # Exits 0 when both openeclass and the mock CAS respond, 1 otherwise.

@@ -4,13 +4,14 @@
 # dependencies = ["pyyaml>=6.0"]
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """Generate the mock CAS runtime config from seed.yaml.
 
 The output is a small JSON file holding the test user's credentials
 and the attribute set the mock CAS returns inside its CAS and SAML
 responses. The mock-cas Docker image bakes this file in at build time
-through a COPY step in the Dockerfile.
+through a COPY step in the Dockerfile. The output is deterministic
+given identical input.
 """
 
 from __future__ import annotations
@@ -28,7 +29,11 @@ OUTPUT_PATH = HERE.parent / "mock-cas" / "cas-config.json"
 
 
 def main() -> None:
-    """Read seed.yaml, write mock-cas/cas-config.json."""
+    """Read seed.yaml, write mock-cas/cas-config.json.
+
+    Raises:
+        SystemExit: If ``seed.yaml`` is not present next to this script.
+    """
     if not INPUT_PATH.is_file():
         print(f"seed input not found: {INPUT_PATH}", file=sys.stderr)
         sys.exit(1)

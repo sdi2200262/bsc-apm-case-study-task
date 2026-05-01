@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """Response-body rendering for the mock CAS service.
 
 Holds the HTML templates served by the login, logout, and not-found
 endpoints and the XML body builders for the CAS and SAML 1.1 surfaces.
 Separating rendering from request dispatch in :mod:`mock_cas.handlers`
-lets a future swap to file-based fixtures land without touching the
-dispatch.
+keeps the dispatch surface small.
 """
 
 from __future__ import annotations
@@ -43,6 +42,12 @@ def _fixtures_dir() -> Path:
 
 
 def _read_fixture(name: str) -> str:
+    """Return the UTF-8 text of the named HTML fixture.
+
+    Raises:
+        FileNotFoundError: If the named fixture does not exist under the
+            fixtures directory resolved by :func:`_fixtures_dir`.
+    """
     path = _fixtures_dir() / name
     return path.read_text(encoding="utf-8")
 

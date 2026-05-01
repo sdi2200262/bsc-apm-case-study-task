@@ -7,7 +7,7 @@ dependencies = []
 
 [[project.authors]]
 name = "CobuterMan"
-email = "haidemenoss@gmail.com"
+email = "sdi2200262@di.uoa.gr"
 
 [project.scripts]
 mock-cas = "mock_cas.server:main"

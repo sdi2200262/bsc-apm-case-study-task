@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 #
 # Drop the database volume and bring the stack back up. The next `up`
 # re-applies the seed against a fresh database, so dates re-anchor to

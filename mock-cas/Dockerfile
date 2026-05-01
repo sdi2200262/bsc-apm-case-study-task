@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) BSc APM Case Study 2025-2026
+
 FROM python:3.12-alpine
 
 LABEL org.opencontainers.image.title="bsc-apm-mock-cas"

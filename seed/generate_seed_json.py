@@ -4,13 +4,14 @@
 # dependencies = ["pyyaml>=6.0"]
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """Generate seed.json from seed.yaml for the php seeder to consume.
 
 The php seeder runs inside the eclass container and has no YAML
 parser available; this generator emits an equivalent JSON file so
 the runtime side can use ``json_decode``. Greek strings stay
-readable by writing UTF-8 with non-ASCII passthrough.
+readable by writing UTF-8 with non-ASCII passthrough. The output is
+deterministic given identical input.
 """
 
 from __future__ import annotations
@@ -28,7 +29,11 @@ OUTPUT_PATH = HERE / "seed.json"
 
 
 def main() -> None:
-    """Read seed.yaml, write seed.json next to it."""
+    """Read seed.yaml, write seed.json next to it.
+
+    Raises:
+        SystemExit: If ``seed.yaml`` is not present next to this script.
+    """
     if not INPUT_PATH.is_file():
         print(f"seed input not found: {INPUT_PATH}", file=sys.stderr)
         sys.exit(1)

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """HTTP request dispatch for the mock CAS service.
 
 Each request lands on :class:`MockCASHandler`, which routes it to a
-phase-specific helper and emits the matching CAS, SAML, or HTML body.
+method per CAS, SAML, or admin endpoint and emits the matching response body.
 Body rendering lives in :mod:`mock_cas.rendering`; this module focuses
 on the dispatch and on the shared response-header surface.
 """
@@ -287,6 +287,7 @@ class MockCASHandler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def _send_html(self, status: int, body: str) -> None:
+        """Write an HTML response body with the shared header surface."""
         encoded = body.encode("utf-8")
         self.send_response(status)
         self._send_common_headers()
@@ -296,6 +297,7 @@ class MockCASHandler(BaseHTTPRequestHandler):
         self.wfile.write(encoded)
 
     def _send_cas_xml(self, status: int, body: str) -> None:
+        """Write a CAS XML response body with the shared header surface."""
         encoded = body.encode("utf-8")
         self.send_response(status)
         self._send_common_headers()
@@ -305,6 +307,7 @@ class MockCASHandler(BaseHTTPRequestHandler):
         self.wfile.write(encoded)
 
     def _send_saml_xml(self, status: int, body: str) -> None:
+        """Write a SAML 1.1 XML response body with the shared header surface."""
         encoded = body.encode("utf-8")
         self.send_response(status)
         self._send_common_headers()
@@ -315,6 +318,14 @@ class MockCASHandler(BaseHTTPRequestHandler):
         self.wfile.write(encoded)
 
     def _send_common_headers(self) -> None:
+        """Emit the shared no-cache and security headers attached to every response.
+
+        Sets cache-busting headers (``Cache-Control``, ``Pragma``,
+        ``Expires``) and a small security-header surface
+        (``Strict-Transport-Security``, ``X-Content-Type-Options``,
+        ``X-Frame-Options``, ``X-XSS-Protection``) plus a per-request
+        ``requestId`` so log lines can be correlated.
+        """
         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")

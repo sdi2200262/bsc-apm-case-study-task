@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 #
 # Install entry script for the BSc APM Case Study testing environment.
 # Loads the docker images bundled in the release tarball, generates the

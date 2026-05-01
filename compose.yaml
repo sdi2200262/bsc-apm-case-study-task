@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) BSc APM Case Study 2025-2026
+
 name: bsc-apm-env
 
 services:
@@ -38,8 +41,6 @@ services:
       - MYSQL_ROOT_PASSWORD=secret
       - MYSQL_DB=eclass
       - BASE_URL=http://localhost
-      - ADMIN_USERNAME=admin
-      - ADMIN_PASSWORD=admin123
       - PHP_MAX_UPLOAD=256M
       - DEFAULT_LANGUAGE=el
 

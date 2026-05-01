@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """Source-IP gating for the /admin/reset endpoint.
 
 The reset endpoint clears in-memory ticket state. To keep it from being

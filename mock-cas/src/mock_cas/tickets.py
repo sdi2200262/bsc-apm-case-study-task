@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """Service-ticket lifecycle for the mock CAS service.
 
 Tickets are short-lived, single-use, and held in process memory. Each

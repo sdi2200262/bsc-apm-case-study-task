@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Copyright (C) 2025-2026
+# Copyright (C) BSc APM Case Study 2025-2026
 """HTTPS server bootstrap for the mock CAS service.
 
 Loads the runtime configuration, wires the shared ticket store into the

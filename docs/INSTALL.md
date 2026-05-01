@@ -4,7 +4,7 @@ This document describes how to install and operate the participant testing envir
 
 ## Prerequisites
 
-- Linux host: native Linux, WSL2 with Docker Engine inside the distro, or macOS via a Linux VM (Multipass running Ubuntu 22.04+ recommended).
+- Linux host: native Linux, WSL2 with Docker Engine inside the distro, or any Linux VM with Docker Engine on macOS.
 - Docker Engine plus Compose v2.
 - Approximately 4 GB free RAM and 20 GB free disk for images and named volumes.
 - Bash 3.2 or newer for the lifecycle scripts.

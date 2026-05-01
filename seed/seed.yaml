@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) BSc APM Case Study 2025-2026
+#
 # Editable source of truth for the testing environment's data state.
 # The generators in this directory turn this file into:
 #   - seed/seed.json           (consumed by seed/seed.php on first up)
