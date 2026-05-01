@@ -70,7 +70,7 @@ if [ ! -f "$DOTENV_FILE" ]; then
 # .env and certs/sso_cert.pem are both inside the checkout, the
 # server resolves them correctly when run from that directory.
 
-ECLASS_URL=http://localhost:18080
+ECLASS_URL=http://localhost
 ECLASS_USERNAME=student1
 ECLASS_PASSWORD=mockpass123
 ECLASS_SSO_DOMAIN=172.17.0.1:18443

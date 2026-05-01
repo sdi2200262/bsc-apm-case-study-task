@@ -8,6 +8,7 @@ This document describes how to install and operate the participant testing envir
 - Docker Engine plus Compose v2.
 - Approximately 4 GB free RAM and 20 GB free disk for images and named volumes.
 - Bash 3.2 or newer for the lifecycle scripts.
+- TCP port 80 (openeclass) and TCP port 18443 (mock authentication service) free on the host. Free them before running `./install`.
 
 ## Install
 
@@ -58,7 +59,7 @@ Once installed, manage the environment with the scripts under `scripts/`:
 
 Participants point their MCP server at:
 
-- `http://localhost:18080/` for the openeclass instance.
+- `http://localhost/` for the openeclass instance.
 - `https://172.17.0.1:18443/` for the mock authentication service.
 
 The full set of environment variables consumed by the reference [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) is documented in [ARCHITECTURE.md](ARCHITECTURE.md).

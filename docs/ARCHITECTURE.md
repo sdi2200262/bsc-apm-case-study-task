@@ -26,7 +26,7 @@ The three services share the default bridge network the Compose stack creates. T
 
 The host reaches:
 
-- `http://localhost:18080/` for the openeclass UI and API.
+- `http://localhost/` for the openeclass UI and API.
 - `https://172.17.0.1:18443/` for the mock authentication service.
 
 ## Environment variables consumed by the participant's MCP server
@@ -35,7 +35,7 @@ The reference client at [eclass-mcp-server](https://github.com/sdi2200262/eclass
 
 | Variable | Value |
 |---|---|
-| `ECLASS_URL` | `http://localhost:18080` |
+| `ECLASS_URL` | `http://localhost` |
 | `ECLASS_USERNAME` | matches `seed/seed.yaml`'s `user.username` |
 | `ECLASS_PASSWORD` | matches `seed/seed.yaml`'s `user.cas_password` |
 | `ECLASS_SSO_DOMAIN` | `172.17.0.1:18443` |

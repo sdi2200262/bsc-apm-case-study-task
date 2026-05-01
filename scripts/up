@@ -7,7 +7,7 @@
 # Steps:
 #   1. docker compose up -d
 #   2. wait for the database healthcheck
-#   3. wait for openeclass to respond on http://localhost:18080/
+#   3. wait for openeclass to respond on http://localhost/
 #   4. wait for the mock CAS to respond on https://localhost:18443/health
 #   5. perform openeclass first-time install when config/config.php is absent
 #   6. ensure /var/www/html/courses/temp exists for the htmlpurifier cache
@@ -24,8 +24,8 @@ DB_USER=root
 DB_PASS=secret
 DB_NAME=eclass
 
-ECLASS_PROBE="http://localhost:18080/"
-ECLASS_INSTALL_URL="http://localhost:18080/install/index.php"
+ECLASS_PROBE="http://localhost/"
+ECLASS_INSTALL_URL="http://localhost/install/index.php"
 ECLASS_CONFIG_PATH="/var/www/html/config/config.php"
 ECLASS_ADMIN_USER=admin
 ECLASS_ADMIN_PASS=adminpass
@@ -86,7 +86,7 @@ run_eclass_install() {
     -d "dbPassForm=$DB_PASS" \
     -d "dbNameForm=$DB_NAME" \
     -d "dbMyAdmin=" \
-    -d "urlForm=http://localhost:18080/" \
+    -d "urlForm=http://localhost/" \
     -d "nameForm=Platform Administrator" \
     -d "loginForm=$ECLASS_ADMIN_USER" \
     -d "passForm=$ECLASS_ADMIN_PASS" \
@@ -147,5 +147,5 @@ step "applying seed via php"
 docker exec -u nginx "$ECLASS_CONTAINER" php /srv/seed/seed.php
 
 step "ready"
-echo "openeclass: http://localhost:18080/"
+echo "openeclass: http://localhost/"
 echo "mock CAS:   https://localhost:18443/  (eclass container reaches it at https://172.17.0.1:18443/)"
