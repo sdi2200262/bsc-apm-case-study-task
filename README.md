@@ -29,7 +29,7 @@ bsc-apm-case-study-env/
 │   ├── pyproject.toml
 │   ├── src/
 │   └── fixtures/
-├── scripts/                    # Lifecycle commands
+├── scripts/                    # Lifecycle commands and consumer-side probe
 │   ├── up
 │   ├── down
 │   ├── status
@@ -37,7 +37,8 @@ bsc-apm-case-study-env/
 │   ├── reset
 │   ├── reset-db
 │   ├── reset-cas
-│   └── reset-cache
+│   ├── reset-cache
+│   └── verify-mcp              # Auth-only wiring probe for an eclass-mcp-server checkout
 └── docs/
     ├── INSTALL.md
     └── ARCHITECTURE.md

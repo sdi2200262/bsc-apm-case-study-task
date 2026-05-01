@@ -46,7 +46,8 @@ Once installed, manage the environment with the scripts under `scripts/`:
 |---|---|
 | `./scripts/up` | Bring the stack up; idempotent. |
 | `./scripts/down` | Bring the stack down; named volumes survive. |
-| `./scripts/status` | Probe each service and report whether the stack is healthy. |
+| `./scripts/status` | Probe each service from the mock side and report whether the stack itself is healthy. |
+| `./scripts/verify-mcp --mcp-root <path>` | Consumer-side complement to `status`: probe whether an `eclass-mcp-server` checkout authenticates against this mock with the `.env` and `certs/` it has been given; prints `wiring ok` on success, names the missing file or environment variable on failure. Refuses to run if the checkout is not at the case-study's pinned baseline (`dbd2d16`) with no tracked-file changes, since the wiring is verified against the baseline auth code only. |
 | `./scripts/logs` | Tail container logs. |
 | `./scripts/reset-db` | Drop the database volume and re-apply the seed. |
 | `./scripts/reset-cas` | Clear the mock authentication service's in-memory state. |
