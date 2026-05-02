@@ -66,7 +66,7 @@ if [ ! -f "$DOTENV_FILE" ]; then
 # Credentials and connection settings for the bundled testing
 # environment. To develop against the mock locally, copy this file
 # and the certs/ directory beside it into your eclass-mcp-server
-# checkout. The cert paths below are workspace-relative, so once
+# checkout. The cert paths below are relative, so once
 # .env and certs/sso_cert.pem are both inside the checkout, the
 # server resolves them correctly when run from that directory.
 

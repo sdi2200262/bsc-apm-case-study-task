@@ -10,7 +10,7 @@ MariaDB 10.11 from the upstream multi-arch image. Holds the openeclass database;
 
 ### `eclass`
 
-Open eClass platform from upstream gunet, built into a local image (`bsc-apm/openeclass:dev`) at release-prep time. Pinned to upstream tag `Release_4.3.3`, the most recent stable release line; the upstream `master` branch carries an unfinished refactor that breaks the docker build. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
+Open eClass platform from upstream gunet, built into a local image (`bsc-apm/openeclass:dev`) at release-prep time. Pinned to upstream tag `Release_4.3.3`, the most recent stable release line; the upstream `master` branch does not produce a working Docker build. Exposes port 80 on the host. Three named volumes (`config_data`, `courses_data`, `video_data`) preserve runtime state.
 
 The image is exactly the upstream platform; no sidecars are baked in, and image identity does not diverge from the pinned tag. On a fresh database, `scripts/up` performs openeclass's first-time install before applying the seed, so participants do not see the install wizard.
 
@@ -44,4 +44,4 @@ The reference client at [eclass-mcp-server](https://github.com/sdi2200262/eclass
 | `REQUESTS_CA_BUNDLE` | `<prefix>/certs/sso_cert.pem` |
 | `CURL_CA_BUNDLE` | `<prefix>/certs/sso_cert.pem` |
 
-The grading machine sets these from its resolved `mock_root` path; participants set them in their MCP server's `.env`. The participant guide carries the concrete values.
+The grading machine sets these from the path where this testing environment is installed; participants set them in their MCP server's `.env`. The participant guide carries the concrete values.

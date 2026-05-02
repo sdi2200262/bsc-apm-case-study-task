@@ -10,13 +10,13 @@
 # prints a structured error and exits non-zero on failure. The script
 # never prints the fetched courses or any other application data.
 #
-# The check is meaningful only against the case-study's pinned baseline
-# of eclass-mcp-server (commit dbd2d16) with no tracked-file changes:
-# the wiring is being verified against the known-good auth code, not
-# against in-progress session work. The script refuses to run if HEAD
-# is not at the pinned commit or tracked files have been modified, so
-# its intended use is at initial setup and after a between-sessions
-# reset.
+# The check is meaningful only against the pinned baseline of
+# eclass-mcp-server (commit dbd2d16) with no tracked-file changes:
+# the wiring is verified against the known-good auth code, not
+# against a checkout with local modifications. The script refuses
+# to run if HEAD is not at the pinned commit or tracked files have
+# been modified; run it right after putting the checkout at the
+# pinned baseline.
 
 set -euo pipefail
 
@@ -77,7 +77,7 @@ if [[ -z "$HEAD_SHA" ]]; then
   exit 2
 fi
 if [[ "$HEAD_SHA" != ${EXPECTED_COMMIT}* ]]; then
-  echo "verify-mcp: HEAD is at ${HEAD_SHA:0:7}, expected $EXPECTED_COMMIT (the case-study pinned baseline). Run only at initial setup or after a between-sessions reset." >&2
+  echo "verify-mcp: HEAD is at ${HEAD_SHA:0:7}, expected $EXPECTED_COMMIT (the pinned baseline). Reset the checkout to that commit before running." >&2
   exit 2
 fi
 

@@ -45,8 +45,7 @@ class TicketStore:
 
     The store is thread-safe; the HTTP server runs each request on its
     own thread, so mint/consume calls can race. A simple lock around the
-    backing dict is sufficient for the volume the grader and a single
-    participant agent generate.
+    backing dict is sufficient for the request volume this service handles.
     """
 
     def __init__(self) -> None:
