@@ -6,7 +6,7 @@
 Tickets are short-lived, single-use, and held in process memory. Each
 ticket is minted at credentials POST and consumed at the matching
 samlValidate (or serviceValidate) call. The store is reset by the
-/admin/reset endpoint when the env package's reset script invokes it.
+/admin/reset endpoint when the testbed's reset script invokes it.
 """
 
 from __future__ import annotations

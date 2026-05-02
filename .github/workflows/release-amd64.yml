@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - name: Check out env repo
+      - name: Check out repo
         uses: actions/checkout@v4
 
       - name: Check out openeclass at Release_4.3.3

@@ -10,6 +10,8 @@ This document describes how to install and operate the participant testing envir
 - Bash 3.2 or newer for the lifecycle scripts.
 - TCP port 80 (openeclass) and TCP port 18443 (mock authentication service) free on the host. Free them before running `./install`.
 
+The numbers above are the testbed's own resource floor. Participants run the testbed inside a Linux environment whose own floor is higher (4 vCPUs, 8 GB of RAM, 20 GB virtual disk); the participant guide states that floor and is the source the participant follows.
+
 ## Install
 
 1. Download the release tarball matching your host architecture:

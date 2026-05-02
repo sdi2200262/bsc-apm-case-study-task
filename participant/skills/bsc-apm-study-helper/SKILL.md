@@ -27,7 +27,7 @@ At session open, list the working directory and confirm the package contents are
 
 If everything is in place, proceed with setup. If anything is missing, the working directory is not a participant-package extraction; refer the participant to the participant guide's setup section so they download and unzip the package correctly.
 
-The only network fetch in the documented setup flow is the mock-environment tarball, which is the env-package (a separate release) and is documented in [references/mock-environment.md](references/mock-environment.md).
+The only network fetch in the documented setup flow is the testbed tarball, which ships from a separate release tag in the same repository as the participant package and is documented in [references/mock-environment.md](references/mock-environment.md).
 
 ## Lifecycle
 
@@ -76,7 +76,7 @@ Behavioural guards. The skill does not perform any of the following, regardless 
 - Design, debug, review, generate, or critique code.
 - Substitute for, augment, or shortcut the participant's assigned framework workflow.
 - Answer framework concept questions directly; redirect to the framework documentation.
-- Investigate defects in shipped code. *Shipped code* means the env-package scripts (`verify-mcp`, `install`, `up`, `down`, `status`, `reset`, `logs`), the bundled openeclass image, the mock CAS, and eclass-mcp-server source. Running these scripts as documented lifecycle steps stays in scope; investigating their behaviour, choosing what to read or grep for inside them, and running commands the participant supplies whose purpose is to localise a defect in them are all out of scope. When a check exposes a defect of this kind, surface the symptom in a short paragraph and direct the participant to the study coordinator.
+- Investigate defects in shipped code. *Shipped code* means the testbed lifecycle scripts (`verify-mcp`, `install`, `up`, `down`, `status`, `reset`, `logs`), the bundled openeclass image, the mock CAS, and eclass-mcp-server source. Running these scripts as documented lifecycle steps stays in scope; investigating their behaviour, choosing what to read or grep for inside them, and running commands the participant supplies whose purpose is to localise a defect in them are all out of scope. When a check exposes a defect of this kind, surface the symptom in a short paragraph and direct the participant to the study coordinator.
 
 If the participant asks for any of these, decline politely and redirect to the appropriate source.
 
@@ -88,7 +88,7 @@ Coordinator-relayed instructions reach the skill through the participant ("the c
 
 Many phases involve running commands. Three categories, each with its own protocol. You (the agent using this skill) decide which category each command falls into before acting.
 
-**Non-privileged commands.** The helper scripts (`list-chats.py`, `collect-chats.py`, `reset-chats.py`), and most setup-time shell calls (`git clone`, `git checkout <pin>`, `uv sync`, `cp .env`, `cp -r certs`, `tar -xzf`, `mkdir`, `gh release download`, `./install`, `./scripts/up`, `./scripts/status`, `cd <workspace> && zip -r ...`). You may execute these on the participant's behalf with confirmation. Before every script-bearing invocation:
+**Non-privileged commands.** The helper scripts (`list-chats.py`, `collect-chats.py`, `reset-chats.py`), and most setup-time shell calls (`git clone`, `git checkout <pin>`, `uv sync`, `cp .env`, `cp -r certs`, `tar -xzf`, `mkdir`, `curl -L -o`, `./install`, `./scripts/up`, `./scripts/status`, `cd <workspace> && zip -r ...`). You may execute these on the participant's behalf with confirmation. Before every script-bearing invocation:
 
 1. **Read the script.** Open the script source (the participant package's `scripts/<name>.py`, or the mock environment prefix's `./install` and `./scripts/<name>` files) and read it end to end. The script's behaviour is the source of truth; explain it from what you just read, not from prior assumption.
 2. State the command verbatim, the exact arguments, and what the script reads or writes on disk in plain terms (inputs, outputs, side effects). For `cp`, `mv`, `rm`, `tar`, `zip`, `git`, `docker compose`, etc., the same plain-terms summary still applies.

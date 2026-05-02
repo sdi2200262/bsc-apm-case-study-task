@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) BSc APM Case Study 2025-2026
 #
-# Release-prep targets for the BSc Case Study testing environment and
-# participant package.
+# Release-prep targets for the BSc APM Case Study testing environment
+# and participant package.
 #
 # Targets:
 #   seed                 Regenerate seed/seed.json and mock-cas/cas-config.json from seed/seed.yaml.
