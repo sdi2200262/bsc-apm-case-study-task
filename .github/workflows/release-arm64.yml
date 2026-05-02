@@ -43,7 +43,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG=bsc-apm-case-study-env-arm64
+          TAG=bsc-apm-case-study-task-arm64
           TITLE="Participant testing environment (arm64)"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" release/bsc-apm-arm64.tar.gz --clobber

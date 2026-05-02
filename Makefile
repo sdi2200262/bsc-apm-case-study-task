@@ -1,21 +1,25 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) BSc APM Case Study 2025-2026
 #
-# Release-prep targets for the BSc APM Case Study testing environment.
+# Release-prep targets for the BSc Case Study testing environment and
+# participant package.
 #
 # Targets:
-#   seed          Regenerate seed/seed.json and mock-cas/cas-config.json from seed/seed.yaml.
-#   build-images  Build the openeclass and mock CAS images.
-#   save-images   Save both images to release/<image>-<arch>.tar.
-#   release       Assemble the GitHub release tarball at release/bsc-apm-<arch>.tar.gz.
-#   clean         Remove the release/ directory.
-#   help          Print this listing.
+#   seed                 Regenerate seed/seed.json and mock-cas/cas-config.json from seed/seed.yaml.
+#   build-images         Build the openeclass and mock CAS images.
+#   save-images          Save both images to release/<image>-<arch>.tar.
+#   release              Assemble the testing environment release tarball at release/bsc-apm-<arch>.tar.gz.
+#   participant-guide    Build the participant guide PDF.
+#   participant-package  Assemble the participant package zip at release/participant-package.zip.
+#   clean                Remove the release/ directory.
+#   help                 Print this listing.
 
 ARCH ?= $(shell uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')
 OPENECLASS_PATH ?= ../openeclass
 OPENECLASS_REF ?= Release_4.3.3
 RELEASE_DIR ?= release
-STAGING_DIR = $(RELEASE_DIR)/staging
+TESTBED_STAGING_DIR = $(RELEASE_DIR)/staging-testbed
+PACKAGE_STAGING_DIR = $(RELEASE_DIR)/staging-package
 
 OPENECLASS_TAG = bsc-apm/openeclass:dev
 MOCK_CAS_TAG = bsc-apm/mock-cas:dev
@@ -26,15 +30,27 @@ RELEASE_TARBALL = $(RELEASE_DIR)/bsc-apm-$(ARCH).tar.gz
 
 UV ?= uv
 
-.PHONY: help seed check-openeclass-ref build-images save-images release clean
+GUIDE_DIR = participant/guide
+GUIDE_TEX = participant-guide-cc.tex
+GUIDE_PDF = $(GUIDE_DIR)/participant-guide-cc.pdf
+TASK_DIR = participant/task
+SCRIPTS_DIR = participant/scripts
+SKILLS_DIR = participant/skills
+RELEASE_ZIP = $(RELEASE_DIR)/participant-package.zip
+
+LATEXMK ?= latexmk
+
+.PHONY: help seed check-openeclass-ref build-images save-images release participant-guide participant-package clean
 
 help:
 	@echo "Available targets:"
-	@echo "  seed          regenerate seed/seed.json and mock-cas/cas-config.json"
-	@echo "  build-images  build openeclass and mock CAS images"
-	@echo "  save-images   save built images to release/*.tar"
-	@echo "  release       assemble $(RELEASE_TARBALL)"
-	@echo "  clean         remove $(RELEASE_DIR)/"
+	@echo "  seed                 regenerate seed/seed.json and mock-cas/cas-config.json"
+	@echo "  build-images         build openeclass and mock CAS images"
+	@echo "  save-images          save built images to release/*.tar"
+	@echo "  release              assemble $(RELEASE_TARBALL)"
+	@echo "  participant-guide    build $(GUIDE_PDF)"
+	@echo "  participant-package  assemble $(RELEASE_ZIP)"
+	@echo "  clean                remove $(RELEASE_DIR)/"
 	@echo ""
 	@echo "Variables:"
 	@echo "  ARCH=$(ARCH)"
@@ -67,14 +83,35 @@ save-images: build-images
 	docker save $(MOCK_CAS_TAG) -o $(MOCK_CAS_TAR)
 
 release: seed save-images
-	@mkdir -p $(STAGING_DIR)/seed
-	cp README.md LICENSE install compose.yaml $(STAGING_DIR)/
-	cp -r scripts docs $(STAGING_DIR)/
-	cp seed/seed.php seed/seed.json $(STAGING_DIR)/seed/
-	cp $(OPENECLASS_TAR) $(MOCK_CAS_TAR) $(STAGING_DIR)/
-	tar -czf $(RELEASE_TARBALL) -C $(STAGING_DIR) .
-	rm -rf $(STAGING_DIR)
+	@mkdir -p $(TESTBED_STAGING_DIR)/seed
+	cp README.md LICENSE install compose.yaml $(TESTBED_STAGING_DIR)/
+	cp -r scripts docs $(TESTBED_STAGING_DIR)/
+	cp seed/seed.php seed/seed.json $(TESTBED_STAGING_DIR)/seed/
+	cp $(OPENECLASS_TAR) $(MOCK_CAS_TAR) $(TESTBED_STAGING_DIR)/
+	tar -czf $(RELEASE_TARBALL) -C $(TESTBED_STAGING_DIR) .
+	rm -rf $(TESTBED_STAGING_DIR)
 	@echo "release tarball: $(RELEASE_TARBALL)"
+
+participant-guide:
+	cd $(GUIDE_DIR) && $(LATEXMK) -pdf $(GUIDE_TEX)
+
+participant-package: participant-guide
+	rm -rf $(PACKAGE_STAGING_DIR)
+	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/task
+	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/scripts
+	cp $(GUIDE_PDF) $(PACKAGE_STAGING_DIR)/participant-package/
+	cp $(TASK_DIR)/PRD.md $(PACKAGE_STAGING_DIR)/participant-package/task/
+	cp $(TASK_DIR)/PROMPT.md $(PACKAGE_STAGING_DIR)/participant-package/task/
+	cp $(TASK_DIR)/README.txt $(PACKAGE_STAGING_DIR)/participant-package/task/
+	cp $(SCRIPTS_DIR)/list-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
+	cp $(SCRIPTS_DIR)/collect-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
+	cp $(SCRIPTS_DIR)/reset-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
+	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/.claude
+	cp -r $(SKILLS_DIR) $(PACKAGE_STAGING_DIR)/participant-package/.claude/skills
+	rm -f $(RELEASE_ZIP)
+	cd $(PACKAGE_STAGING_DIR) && zip -r ../$(notdir $(RELEASE_ZIP)) participant-package
+	rm -rf $(PACKAGE_STAGING_DIR)
+	@echo "wrote $(RELEASE_ZIP)"
 
 clean:
 	rm -rf $(RELEASE_DIR)
