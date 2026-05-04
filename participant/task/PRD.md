@@ -245,7 +245,7 @@ punctuation, wording, or whitespace fail validation.
 |---|---|
 | Not logged in | `Error: Not logged in. Please log in first using the login tool.` |
 | Unparseable `course_url` | `Error: Could not extract course code.` |
-| `days_back` is negative | `Error: days_back must be a positive integer.` |
+| `days_back` is negative | `Error: days_back must be a non-negative integer.` |
 | Window is empty | `No announcements found.` |
 | Window is non-empty | The §2 success format with `<N>` equal to the count of announcements in the window. |
 
@@ -254,7 +254,7 @@ punctuation, wording, or whitespace fail validation.
 | Condition | Response text |
 |---|---|
 | Not logged in | `Error: Not logged in. Please log in first using the login tool.` |
-| `days_back` is negative | `Error: days_back must be a positive integer.` |
+| `days_back` is negative | `Error: days_back must be a non-negative integer.` |
 | `days_back` is greater than 30 | `Error: Cannot retrieve announcements older than 30 days.` |
 | Window is empty | `No announcements found.` |
 | Window is non-empty | The §2 success format. The response renders `Source: System` for each system-wide entry and `Source: <code>` (where `<code>` is the course code from `get_courses`) for each course entry. |
