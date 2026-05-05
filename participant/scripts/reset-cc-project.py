@@ -2,17 +2,19 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) BSc APM Case Study 2025-2026
 
-"""Delete every Claude Code transcript for a workspace.
+"""Delete every Claude Code project file for a workspace.
 
 Resolves the workspace path to its corresponding entry under
-``~/.claude/projects/`` and deletes every ``.jsonl`` transcript inside.
-The Claude Code project directory itself is left in place; only the
-transcript files are removed. Other files inside the project directory
-(if any) are left untouched.
+``~/.claude/projects/`` and removes the entire directory tree at that
+path: top-level ``.jsonl`` transcripts, every per-session subdirectory
+(``<sessionId>/`` containing ``subagents/`` and ``tool-results/``), the
+project-local ``memory/`` store, and anything else Claude Code has
+cached for that workspace. Claude Code recreates the directory on the
+next launch, so session 2 starts from a fully clean baseline.
 
-This action is destructive. By default it lists the files it would
-delete and prompts for confirmation. Pass ``--force`` to skip the
-prompt; the listing still prints so the action stays observable.
+This action is destructive. By default it inventories the directory's
+contents and prompts for confirmation. Pass ``--force`` to skip the
+prompt; the inventory still prints so the action stays observable.
 
 Exit codes: ``0`` on a successful deletion or a confirmed no-op; ``1``
 on input errors; ``2`` when the user declines the prompt.
@@ -21,6 +23,7 @@ on input errors; ``2`` when the user declines the prompt.
 from __future__ import annotations
 
 import argparse
+import shutil
 import sys
 from pathlib import Path
 
@@ -66,16 +69,19 @@ def resolve_project_dir(workspace: Path) -> Path:
     return project_dir
 
 
-def list_transcripts(project_dir: Path) -> list[Path]:
-    """List every ``.jsonl`` transcript in a project directory.
+def inventory_project_dir(project_dir: Path) -> tuple[list[Path], list[Path]]:
+    """List the top-level files and subdirectories of a project directory.
 
     Args:
         project_dir: Resolved Claude Code project directory.
 
     Returns:
-        Paths sorted by file name.
+        Tuple ``(files, subdirs)``: top-level file paths sorted by name,
+        and top-level subdirectory paths sorted by name.
     """
-    return sorted(project_dir.glob("*.jsonl"))
+    files = sorted(p for p in project_dir.iterdir() if p.is_file())
+    subdirs = sorted(p for p in project_dir.iterdir() if p.is_dir())
+    return files, subdirs
 
 
 def confirm(prompt: str) -> bool:
@@ -91,39 +97,42 @@ def confirm(prompt: str) -> bool:
     return answer in {"y", "yes"}
 
 
-def delete_transcripts(transcripts: list[Path]) -> int:
-    """Delete each transcript file, reporting per-file outcomes.
+def delete_project_dir(project_dir: Path) -> bool:
+    """Remove the entire project directory tree.
 
     Args:
-        transcripts: Files to delete.
+        project_dir: Resolved Claude Code project directory to delete.
 
     Returns:
-        Count of files successfully deleted.
+        ``True`` on success, ``False`` if the removal failed (the error
+        is printed to stderr).
     """
-    deleted = 0
-    for path in transcripts:
-        try:
-            path.unlink()
-            print(f"  deleted {path.name}")
-            deleted += 1
-        except OSError as exc:
-            print(f"  failed  {path.name} ({exc})", file=sys.stderr)
-    return deleted
+    try:
+        shutil.rmtree(project_dir)
+        return True
+    except OSError as exc:
+        print(f"error: failed to remove {project_dir} ({exc})", file=sys.stderr)
+        return False
 
 
 def build_parser() -> argparse.ArgumentParser:
     """Construct the command-line argument parser."""
     parser = argparse.ArgumentParser(
         description=(
-            "Delete every Claude Code transcript for a workspace. Resolves "
-            "the workspace path to its ~/.claude/projects/ entry and "
-            "removes every .jsonl file inside. Destructive: prompts for "
-            "confirmation by default; pass --force to skip the prompt."
+            "Delete every Claude Code project file for a workspace. "
+            "Resolves the workspace path to its ~/.claude/projects/ entry "
+            "and removes the entire directory tree at that path: top-level "
+            ".jsonl transcripts, per-session subdirectories (subagents/ "
+            "and tool-results/), the project-local memory/ store, and "
+            "anything else Claude Code has cached for that workspace. "
+            "Claude Code recreates the directory on the next launch. "
+            "Destructive: prompts for confirmation by default; pass "
+            "--force to skip the prompt."
         ),
         epilog=(
             "Examples:\n"
-            "  reset-chats.py ~/work/eclass-mcp-server\n"
-            "  reset-chats.py ~/work/eclass-mcp-server --force"
+            "  reset-cc-project.py ~/work/eclass-mcp-server\n"
+            "  reset-cc-project.py ~/work/eclass-mcp-server --force"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -155,18 +164,21 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    transcripts = list_transcripts(project_dir)
-    if not transcripts:
-        print(f"No transcripts to delete in {project_dir}.")
-        return 0
-    print(f"About to delete {len(transcripts)} transcript(s) from {project_dir}:")
-    for path in transcripts:
-        print(f"  {path.name}")
+    files, subdirs = inventory_project_dir(project_dir)
+    if not files and not subdirs:
+        print(f"Project directory {project_dir} is already empty; removing it anyway.")
+    else:
+        print(f"About to remove the entire project directory at {project_dir}:")
+        for path in files:
+            print(f"  file  {path.name}")
+        for path in subdirs:
+            print(f"  dir   {path.name}/")
     if not args.force and not confirm("Proceed?"):
-        print("Aborted; no files were deleted.")
+        print("Aborted; nothing was deleted.")
         return 2
-    deleted = delete_transcripts(transcripts)
-    print(f"Done: {deleted} of {len(transcripts)} deleted.")
+    if not delete_project_dir(project_dir):
+        return 1
+    print(f"Done: removed {project_dir}.")
     return 0
 
 

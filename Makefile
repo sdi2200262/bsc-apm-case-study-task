@@ -105,7 +105,7 @@ participant-package: participant-guide
 	cp $(TASK_DIR)/README.txt $(PACKAGE_STAGING_DIR)/participant-package/task/
 	cp $(SCRIPTS_DIR)/list-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
 	cp $(SCRIPTS_DIR)/collect-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
-	cp $(SCRIPTS_DIR)/reset-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
+	cp $(SCRIPTS_DIR)/reset-cc-project.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
 	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/.claude
 	cp -r $(SKILLS_DIR) $(PACKAGE_STAGING_DIR)/participant-package/.claude/skills
 	rm -f $(RELEASE_ZIP)

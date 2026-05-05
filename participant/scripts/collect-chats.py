@@ -7,13 +7,19 @@
 Resolves the workspace path to its corresponding entry under
 ``~/.claude/projects/``, selects every ``.jsonl`` transcript whose first
 record timestamp falls in the inclusive range ``[--from, --to]``, and
-copies each into ``<workspace>/transcripts/``. The destination folder is
-created if missing.
+copies each into ``<workspace>/transcripts/``. For every selected
+transcript, the sibling subdirectory named after the same session uuid
+(``<projects>/<encoded>/<sessionId>/``) is also copied recursively to
+``<workspace>/transcripts/<sessionId>/`` when present, preserving its
+internal layout (typically ``subagents/`` and ``tool-results/``).
 
 Bad timestamps in ``--from`` or ``--to`` produce a clear error and a non
 zero exit code without touching the filesystem. The destination directory
 is never deleted; existing files inside it are kept (a per-file overwrite
-prompt asks before replacement, unless ``--force`` is given).
+prompt asks before replacement, unless ``--force`` is given). Existing
+session subdirectories at the destination are merged into rather than
+replaced; per-file overwrite inside a subdirectory is silent under
+``--force`` and prompted otherwise.
 
 Exit codes: ``0`` on success; ``1`` on input errors; ``2`` when the user
 declines an overwrite prompt.
@@ -211,15 +217,94 @@ def copy_into_workspace(
     return copied, skipped, declined
 
 
+def copy_session_subdirs(
+    sources: list[Path],
+    workspace: Path,
+    force: bool,
+) -> tuple[int, int]:
+    """Copy each main transcript's sibling session subdirectory.
+
+    For every source path, derives the session uuid from the file name
+    (the stem of ``<sessionId>.jsonl``) and looks for a sibling directory
+    of the same name in the source's parent. When present, the directory
+    is copied recursively into
+    ``<workspace>/transcripts/<sessionId>/``. Existing destination
+    subdirectories are merged into rather than replaced; individual files
+    inside a destination subdirectory follow the same overwrite rule as
+    the top-level transcripts (per-file prompt unless ``--force``).
+
+    Args:
+        sources: Source transcript paths whose sibling subdirectories
+            should be considered for copying.
+        workspace: Workspace path the participant supplied.
+        force: When ``True``, overwrite existing files inside destination
+            subdirectories without prompting.
+
+    Returns:
+        Tuple ``(copied_dirs, missing_dirs)``: count of session
+        subdirectories that existed at the source and were copied across,
+        and count of selected sessions that had no sibling subdirectory
+        on disk (the common case for sessions that did not dispatch any
+        subagents and have no cached tool results).
+    """
+    dest_dir = workspace / DEST_DIRNAME
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    copied = 0
+    missing = 0
+    for source in sources:
+        session_id = source.stem
+        sibling = source.parent / session_id
+        if not sibling.is_dir():
+            missing += 1
+            continue
+        target = dest_dir / session_id
+        shutil.copytree(
+            sibling,
+            target,
+            dirs_exist_ok=True,
+            copy_function=_copy_with_overwrite_policy(force),
+        )
+        print(f"  copied  {session_id}/ (recursive)")
+        copied += 1
+    return copied, missing
+
+
+def _copy_with_overwrite_policy(force: bool):
+    """Return a ``shutil.copytree`` copy function that honours ``--force``.
+
+    The returned callable matches the ``copy_function`` signature
+    ``shutil.copytree`` expects: ``(src, dst)`` returning the destination
+    path. When ``force`` is ``False`` and the destination already exists,
+    the participant is prompted per file the same way top-level copies
+    are; declined files are skipped without raising.
+
+    Args:
+        force: When ``True``, overwrite without prompting.
+
+    Returns:
+        A copy function suitable for ``shutil.copytree(..., copy_function=...)``.
+    """
+    def _copy(src: str, dst: str) -> str:
+        target = Path(dst)
+        if target.exists() and not force and not confirm_overwrite(target):
+            print(f"    skipped {target.name}")
+            return dst
+        return shutil.copy2(src, dst)
+    return _copy
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Construct the command-line argument parser."""
     parser = argparse.ArgumentParser(
         description=(
             "Copy Claude Code transcripts whose first record timestamp falls "
             "in [--from, --to] from ~/.claude/projects/<encoded>/ into "
-            "<workspace>/transcripts/. The destination directory is created "
-            "if it does not exist; existing files prompt for overwrite "
-            "unless --force is given."
+            "<workspace>/transcripts/. For every selected transcript, the "
+            "sibling session subdirectory of the same uuid is also copied "
+            "recursively (carrying the subagents/ and tool-results/ content "
+            "Claude Code wrote alongside the session). The destination "
+            "directory is created if it does not exist; existing files "
+            "prompt for overwrite unless --force is given."
         ),
         epilog=(
             "Examples:\n"
@@ -293,7 +378,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     print(f"Copying {len(selected)} transcript(s) into {args.workspace / DEST_DIRNAME}:")
     copied, _, declined = copy_into_workspace(selected, args.workspace, args.force)
-    print(f"Done: {copied} copied, {declined} declined.")
+    copied_dirs, missing_dirs = copy_session_subdirs(selected, args.workspace, args.force)
+    print(
+        f"Done: {copied} transcript(s) copied, {declined} declined; "
+        f"{copied_dirs} session subdirectory(ies) copied, "
+        f"{missing_dirs} session(s) had none on disk."
+    )
     return 2 if declined and copied == 0 else 0
 
 

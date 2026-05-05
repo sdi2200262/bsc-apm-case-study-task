@@ -39,7 +39,7 @@ The three Python scripts in [`scripts/`](scripts/) manage Claude Code transcript
 |--------|---------|
 | `list-chats.py` | List transcripts in a workspace's project directory with first and last record timestamps and a preview of the first user message. |
 | `collect-chats.py` | Copy transcripts whose first record timestamp falls in a given ISO time range into `<workspace>/transcripts/`. |
-| `reset-chats.py` | Delete every transcript in a workspace's project directory. Destructive; prompts for confirmation by default. |
+| `reset-cc-project.py` | Remove the workspace's entry under `~/.claude/projects/` in full (transcripts, per-session subdirectories, project-local `memory/`, anything else Claude Code has cached). Destructive; prompts for confirmation by default. |
 
 Run any script with `--help` for usage and examples.
 

@@ -34,7 +34,7 @@ python3 /path/to/scripts/collect-chats.py <workspace> \
     --from 2026-05-01T09:00 --to 2026-05-01T12:30
 ```
 
-The script copies the matching transcripts into `<workspace>/transcripts/`. Verify the contents of that directory by re-running `list-chats.py` against it with `--from-dir`, which scans the directory directly instead of resolving a workspace path:
+The script copies the matching transcripts into `<workspace>/transcripts/`. For every selected transcript, the script also copies the sibling per-session subdirectory of the same uuid (`subagents/` and `tool-results/` inside it) recursively into `<workspace>/transcripts/<sessionId>/`; sessions that did not dispatch any subagents and have no cached tool results have no such subdirectory and the script silently skips them. Verify the contents of that directory by re-running `list-chats.py` against it with `--from-dir`, which scans the directory directly instead of resolving a workspace path. The listing enumerates the top-level main transcripts only; the per-session subdirectories ride along with their main transcript.
 
 ```
 python3 /path/to/scripts/list-chats.py \
@@ -50,7 +50,7 @@ cd <workspace>
 zip -r P001_S1_apm.zip solution.patch transcripts/
 ```
 
-The zip must contain exactly two entries at its root: `solution.patch` and `transcripts/`. Files under `transcripts/` are flat `.jsonl` files placed directly at the directory's root.
+The zip contains exactly two entries at its root: `solution.patch` and `transcripts/`. Inside `transcripts/`, the top-level entries are one `.jsonl` per main session and one subdirectory per session named after the same session uuid; each subdirectory holds the `subagents/` and `tool-results/` content Claude Code wrote alongside that session. Sessions that produced no subagent dispatches and no cached tool results have no subdirectory.
 
 **4. Move the zip out of the workspace.** The between-sessions reset wipes everything in the workspace, including the zip. Store it in a directory outside the workspace and outside the participant package; `~/Documents/bsc-apm-submissions/` is a reasonable default. Both session zips end up there, and the cleanup commands later leave that directory untouched.
 
@@ -92,13 +92,13 @@ ls -la <workspace>
 
 Delete any extra files or directories the AI may have created at the workspace root. If `PRD.md` or `PROMPT.md` were modified during the session, restore them from the participant package's `task/` directory; session 2 must read them in their original form.
 
-**4. Wipe the transcripts.** Clear the transcript store for this workspace; the script touches only that workspace's transcripts:
+**4. Wipe the Claude Code project state for this workspace.** Remove the workspace's entry under `~/.claude/projects/` in full so session 2 starts from a clean baseline; the script touches only that workspace's project directory:
 
 ```
-python3 /path/to/scripts/reset-chats.py <workspace>
+python3 /path/to/scripts/reset-cc-project.py <workspace>
 ```
 
-The script lists the files it will delete and asks for confirmation. Run it only after the session's zip has been safely stored; the deletion is permanent.
+The script inventories the directory's contents (top-level transcripts, per-session subdirectories, the project-local `memory/` store, anything else Claude Code has cached) and asks for confirmation. Run it only after the session's zip has been safely stored; the deletion is permanent. Claude Code recreates the project directory on the next launch.
 
 **5. Reset the mock environment, only if needed.** The mock environment retains its initial state across sessions and usually does not need a reset. Reset it only if a previous session modified the test data:
 
@@ -113,7 +113,7 @@ cd <mock>
 - `<workspace>/eclass-mcp-server` is at `dbd2d16` with a clean working tree.
 - `<workspace>/openeclass` is at `e8b3329` with a clean working tree.
 - The workspace root contains `PRD.md`, `PROMPT.md`, `eclass-mcp-server/`, and `openeclass/`, and nothing else; `PRD.md` and `PROMPT.md` match their original contents from the participant package.
-- The workspace's transcript directory contains no transcripts from session 1.
+- The workspace's Claude Code project directory under `~/.claude/projects/` either does not yet exist or has been freshly created with no session-1 state inside.
 
 Once the baseline is in place, the participant returns to *Starting a session* and repeats the same starting-working-wrapping-up flow for session 2 (with the other assigned framework). Session 2 ends after step 5 of *Wrapping up* (*Submit the form*); the resetting steps are not needed to be run again.
 
@@ -123,7 +123,7 @@ Optional. Once both session zips have been submitted (see [submission.md](submis
 
 For a clean slate:
 
-- Wipe session 2's transcripts: `python3 /path/to/scripts/reset-chats.py <workspace>`.
+- Wipe session 2's Claude Code project state: `python3 /path/to/scripts/reset-cc-project.py <workspace>`.
 - Delete the workspace: `rm -rf <workspace>`.
 - Uninstall the mock environment: follow the steps in [mock-environment.md](mock-environment.md), Uninstall.
 

@@ -1,6 +1,6 @@
 ---
 name: bsc-apm-study-helper
-description: BSc APM thesis study participation helper: host setup, mock environment lifecycle, workspace layout, helper scripts (list-chats, collect-chats, reset-chats), submission packaging, and between-sessions reset. Use for logistics questions about the participant guide. Redirects task implementation questions to PRD.md and framework concept questions to the official framework documentation.
+description: BSc APM thesis study participation helper: host setup, mock environment lifecycle, workspace layout, helper scripts (list-chats, collect-chats, reset-cc-project), submission packaging, and between-sessions reset. Use for logistics questions about the participant guide. Redirects task implementation questions to PRD.md and framework concept questions to the official framework documentation.
 license: GPL-3.0-or-later (see LICENSE in the participant package's source repository)
 ---
 
@@ -23,7 +23,7 @@ At session open, list the working directory and confirm the package contents are
 
 - `participant-guide-cc.pdf`
 - `task/PRD.md`, `task/PROMPT.md`, `task/README.txt`
-- `scripts/list-chats.py`, `scripts/collect-chats.py`, `scripts/reset-chats.py`
+- `scripts/list-chats.py`, `scripts/collect-chats.py`, `scripts/reset-cc-project.py`
 
 If everything is in place, proceed with setup. If anything is missing, the working directory is not a participant-package extraction; refer the participant to the participant guide's setup section so they download and unzip the package correctly.
 
@@ -54,7 +54,7 @@ This skill helps with:
 - Per-session framework CLI install: `apm` for APM (via `npm install -g agentic-pm`), or `specify` for Spec-kit (via `uvx --from git+https://github.com/github/spec-kit.git@<tag> specify ...`, where `<tag>` is `v0.8.3` or any newer release tag from https://github.com/github/spec-kit/releases). Claude Code itself is assumed already installed since this skill loads from inside it.
 - Mock environment install, lifecycle, MCP server configuration, and uninstall.
 - Workspace layout and cloning the two repositories at their pinned commits.
-- Running the participant package's helper scripts: `list-chats.py` (with `--from-projects` or `--from-dir`), `collect-chats.py`, `reset-chats.py`.
+- Running the participant package's helper scripts: `list-chats.py` (with `--from-projects` or `--from-dir`), `collect-chats.py`, `reset-cc-project.py`.
 - Producing the per-session `solution.patch`, collecting transcripts into `<workspace>/transcripts/`, packaging the submission zip with the prescribed filename pattern, and submitting it through the per-session form.
 - Resetting the workspace and the transcript store between sessions.
 - Optional cleanup after both sessions have been submitted.
@@ -88,7 +88,7 @@ Coordinator-relayed instructions reach the skill through the participant ("the c
 
 Many phases involve running commands. Three categories, each with its own protocol. You (the agent using this skill) decide which category each command falls into before acting.
 
-**Non-privileged commands.** The helper scripts (`list-chats.py`, `collect-chats.py`, `reset-chats.py`), and most setup-time shell calls (`git clone`, `git checkout <pin>`, `uv sync`, `cp .env`, `cp -r certs`, `tar -xzf`, `mkdir`, `curl -L -o`, `./install`, `./scripts/up`, `./scripts/status`, `cd <workspace> && zip -r ...`). You may execute these on the participant's behalf with confirmation. Before every script-bearing invocation:
+**Non-privileged commands.** The helper scripts (`list-chats.py`, `collect-chats.py`, `reset-cc-project.py`), and most setup-time shell calls (`git clone`, `git checkout <pin>`, `uv sync`, `cp .env`, `cp -r certs`, `tar -xzf`, `mkdir`, `curl -L -o`, `./install`, `./scripts/up`, `./scripts/status`, `cd <workspace> && zip -r ...`). You may execute these on the participant's behalf with confirmation. Before every script-bearing invocation:
 
 1. **Read the script.** Open the script source (the participant package's `scripts/<name>.py`, or the mock environment prefix's `./install` and `./scripts/<name>` files) and read it end to end. The script's behaviour is the source of truth; explain it from what you just read, not from prior assumption.
 2. State the command verbatim, the exact arguments, and what the script reads or writes on disk in plain terms (inputs, outputs, side effects). For `cp`, `mv`, `rm`, `tar`, `zip`, `git`, `docker compose`, etc., the same plain-terms summary still applies.
@@ -97,7 +97,7 @@ Many phases involve running commands. Three categories, each with its own protoc
 5. Verify the result against expectation (e.g., re-run `list-chats.py --from-dir` to verify a `transcripts/` directory matches the rows the participant intended to collect, per [references/session-workflow.md](references/session-workflow.md), step 2 of *Wrapping up*).
 6. Move to the next action with another confirmation.
 
-**Destructive non-privileged commands.** `git reset --hard <pin>`, `git clean -fdx`, `rm -rf <workspace>`, `reset-chats.py`, `docker compose -f <mock>/compose.yaml down -v`, `<mock>/scripts/reset`. Same five-step contract, but with extra emphasis at step 1: spell out exactly what is deleted (uncommitted code, untracked files, virtual envs, transcripts, named volumes) and tell the participant the action is permanent.
+**Destructive non-privileged commands.** `git reset --hard <pin>`, `git clean -fdx`, `rm -rf <workspace>`, `reset-cc-project.py`, `docker compose -f <mock>/compose.yaml down -v`, `<mock>/scripts/reset`. Same five-step contract, but with extra emphasis at step 1: spell out exactly what is deleted (uncommitted code, untracked files, virtual envs, transcripts, per-session subdirectories, the project-local `memory/` store, named volumes) and tell the participant the action is permanent.
 
 **Privileged commands that need `sudo`.** Anything beginning with `sudo`, plus pipelines that hand control to `sudo` (e.g., `curl -fsSL https://get.docker.com | sudo sh`, `sudo apt-get update`, `sudo apt-get install -y ...`, `sudo usermod -aG docker $USER`). Whether to run these directly depends on the host's sudo configuration; probe immediately before each sudo-prefixed command with `sudo -n true 2>/dev/null` and check the exit code, since sudo timestamps expire and the participant may revoke passwordless sudo in another terminal mid-session, so a single probe at session open is not sufficient. If exit code 0, sudo is passwordless for this command (common on Multipass, Lima, fresh WSL2, and most cloud-init-provisioned VMs); run the sudo-prefixed step directly with the same five-step contract used for non-privileged commands, and announce it in plain terms before running. If the probe prompts or returns non-zero, hand the command to the participant verbatim, ask them to run it in their own terminal, and verify the output they paste back: `apt-get install` ends with `Setting up <package> ...` lines and a clean exit, the Docker convenience script prints `... installed successfully`, `usermod` produces no output and `groups $USER` confirms the change after the participant logs out and back in or runs `newgrp docker`. If the output reveals a problem, diagnose against the relevant reference file and propose a fix.
 

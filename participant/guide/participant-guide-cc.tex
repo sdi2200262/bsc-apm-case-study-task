@@ -162,7 +162,7 @@ After each session you produce one zip file containing two artefacts at its root
 
 \begin{itemize}
     \item \texttt{solution.patch}: a unified diff of your work against a pinned starting commit of the implementation codebase.
-    \item \texttt{transcripts/}: a flat directory of the AI interaction logs (one \texttt{.jsonl} file per conversation).
+    \item \texttt{transcripts/}: the AI interaction logs. One \texttt{.jsonl} per main session at the top level, plus a subdirectory of the same uuid for each carrying the \texttt{subagents/} and \texttt{tool-results/} records Claude Code wrote alongside that session.
 \end{itemize}
 
 The zip filename follows the strict pattern \texttt{\{PID\}\_S\{1\textbar{}2\}\_\{apm\textbar{}speckit\}.zip}, e.g., \texttt{P001\_S1\_apm.zip}.
@@ -184,7 +184,7 @@ participant-package/
 |-- scripts/
 |   |-- list-chats.py              # transcript listing helper
 |   |-- collect-chats.py           # transcript collection helper
-|   `-- reset-chats.py             # transcript wipe helper
+|   `-- reset-cc-project.py        # project-state wipe helper
 `-- .claude/
     `-- skills/
         `-- bsc-apm-study-helper/  # optional Claude Code skill (see Section 3.1)
@@ -483,7 +483,7 @@ python3 /path/to/scripts/collect-chats.py <workspace> \
     --from 2026-05-01T09:00 --to 2026-05-01T12:30
 \end{verbatim}
 
-The script copies the matching transcripts into \texttt{<workspace>/transcripts/}. Verify the contents of that directory by re-running \texttt{list-chats.py} against it with \texttt{-{}-from-dir}, which scans the directory directly instead of resolving a workspace path:
+The script copies the matching transcripts into \texttt{<workspace>/transcripts/}, each alongside the sibling subdirectory of the same uuid carrying the \texttt{subagents/} and \texttt{tool-results/} records Claude Code wrote during that session. Verify by re-running \texttt{list-chats.py} with \texttt{-{}-from-dir}; the listing enumerates the top-level transcripts only:
 
 \begin{verbatim}
 python3 /path/to/scripts/list-chats.py \
@@ -499,7 +499,7 @@ cd <workspace>
 zip -r P001_S1_apm.zip solution.patch transcripts/
 \end{verbatim}
 
-The zip must contain exactly two entries at its root: \texttt{solution.patch} and \texttt{transcripts/}. Files under \texttt{transcripts/} are flat \texttt{.jsonl} files; do not nest them under any subdirectory.
+The zip contains exactly two entries at its root: \texttt{solution.patch} and \texttt{transcripts/}. Inside \texttt{transcripts/}: one \texttt{.jsonl} per main session at the top level, plus a subdirectory of the same uuid for each carrying the \texttt{subagents/} and \texttt{tool-results/} records.
 
 \textbf{4. Move the zip out of the workspace.} The between-sessions reset wipes everything in the workspace, including the zip. Store it in a directory outside the workspace and outside the participant package; \texttt{\textasciitilde/Documents/bsc-apm-submissions/} is a reasonable default. Both session zips end up there, and the cleanup steps later leave that directory untouched.
 
@@ -546,13 +546,13 @@ ls -la <workspace>
 
 Delete any extra files or directories the AI may have created at the workspace root. If \texttt{PRD.md} or \texttt{PROMPT.md} were modified during the session, restore them from the participant package's \texttt{task/} directory; session 2 must read them in their original form.
 
-\textbf{4. Wipe the transcripts.} Clear the transcript store for this workspace; the script touches only that workspace's transcripts:
+\textbf{4. Wipe the Claude Code project state.} Remove this workspace's entry under \texttt{\textasciitilde/.claude/projects/} so session 2 starts from a clean baseline:
 
 \begin{verbatim}
-python3 /path/to/scripts/reset-chats.py <workspace>
+python3 /path/to/scripts/reset-cc-project.py <workspace>
 \end{verbatim}
 
-The script lists the files it will delete and asks for confirmation. Run it only after you have safely stored the session's zip; the deletion is permanent.
+The script inventories the directory contents (transcripts, per-session subdirectories, the project-local \texttt{memory/} store) and asks for confirmation. Run it only after you have safely stored the session's zip; the deletion is permanent.
 
 \textbf{5. Reset the mock environment, only if needed.} The mock environment retains its initial state across sessions and usually does not need a reset. Reset it only if a previous session modified the test data:
 
@@ -568,7 +568,7 @@ cd <mock>
     \item \texttt{<workspace>/eclass-mcp-server} is at \texttt{dbd2d16} with a clean working tree.
     \item \texttt{<workspace>/openeclass} is at \texttt{e8b3329} with a clean working tree.
     \item The workspace root contains \texttt{PRD.md}, \texttt{PROMPT.md}, \texttt{eclass-mcp-server/}, and \texttt{openeclass/}, and nothing else; \texttt{PRD.md} and \texttt{PROMPT.md} match their original contents from the participant package.
-    \item Your workspace's transcript directory contains no transcripts from session 1.
+    \item Your workspace's project directory under \texttt{\textasciitilde/.claude/projects/} holds no session-1 state.
 \end{itemize}
 
 Once the baseline is in place, return to Section~\ref{sec:starting} and repeat the same starting-working-wrapping-up flow for session 2 (with your other assigned framework). Session 2 ends after Section~\ref{sec:wrapping}, step 5 (\emph{Submit the form}); the resetting steps are not needed to be run again.
@@ -579,7 +579,7 @@ Once the baseline is in place, return to Section~\ref{sec:starting} and repeat t
 Optional. Once both sessions are wrapped up and submitted, nothing in this study needs to stay on your machine. If you want a clean slate:
 
 \begin{itemize}
-    \item Wipe session 2's transcripts: \texttt{python3 /path/to/scripts/reset-chats.py <workspace>}.
+    \item Wipe session 2's Claude Code project state: \texttt{python3 /path/to/scripts/reset-cc-project.py <workspace>}.
     \item Delete the workspace: \texttt{rm -rf <workspace>}.
     \item Uninstall the mock environment: follow the steps in Section~\ref{sec:env:uninstall}.
 \end{itemize}
