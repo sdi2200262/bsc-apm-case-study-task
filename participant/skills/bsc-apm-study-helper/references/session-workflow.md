@@ -20,7 +20,7 @@ git add -A
 git diff --cached dbd2d16 > ../solution.patch
 ```
 
-**2. Collect the transcripts.** Claude Code stores transcripts under `~/.claude/projects/` in a per-workspace subdirectory whose name is the workspace's absolute path with every `/` replaced by `-`. List what is in the workspace's transcript directory and pick the rows that belong to the session just finished; the `--from-projects` flag tells `list-chats.py` to resolve the mapping:
+**2. Collect the transcripts.** Claude Code stores transcripts under `~/.claude/projects/` in a per-workspace subdirectory whose name is the workspace's absolute path with every character that is not an ASCII letter, digit, or hyphen replaced by `-`. The path separator `/`, the dot `.`, and the underscore `_` all get replaced; usernames or directory names containing those characters are normalised the same way. List what is in the workspace's transcript directory and pick the rows that belong to the session just finished; the `--from-projects` flag tells `list-chats.py` to resolve the mapping:
 
 ```
 python3 /path/to/scripts/list-chats.py \
@@ -34,7 +34,7 @@ python3 /path/to/scripts/collect-chats.py <workspace> \
     --from 2026-05-01T09:00 --to 2026-05-01T12:30
 ```
 
-The script copies the matching transcripts into `<workspace>/transcripts/`. For every selected transcript, the script also copies the sibling per-session subdirectory of the same uuid (`subagents/` and `tool-results/` inside it) recursively into `<workspace>/transcripts/<sessionId>/`; sessions that did not dispatch any subagents and have no cached tool results have no such subdirectory and the script silently skips them. Verify the contents of that directory by re-running `list-chats.py` against it with `--from-dir`, which scans the directory directly instead of resolving a workspace path. The listing enumerates the top-level main transcripts only; the per-session subdirectories ride along with their main transcript.
+The script copies the matching transcripts into `<workspace>/transcripts/`. For every selected transcript, the script also copies the sibling per-session subdirectory of the same uuid (`subagents/` and `tool-results/` inside it) recursively into `<workspace>/transcripts/<sessionId>/`; sessions that did not dispatch any subagents and have no cached tool results have no such subdirectory and the script silently skips them. The closing line reports `N session(s) had none on disk` for those; that is a normal report, not an error. Verify the contents of that directory by re-running `list-chats.py` against it with `--from-dir`, which scans the directory directly instead of resolving a workspace path. The listing enumerates the top-level main transcripts only; the per-session subdirectories ride along with their main transcript.
 
 ```
 python3 /path/to/scripts/list-chats.py \
@@ -42,6 +42,15 @@ python3 /path/to/scripts/list-chats.py \
 ```
 
 The output should match the rows the participant intended to collect, with the same first and last timestamps. If a row is missing, widen the time window and re-run `collect-chats.py`.
+
+**Manual fallback when path encoding fails.** If `list-chats.py`, `collect-chats.py`, or `reset-cc-project.py` reports `no Claude Code project directory found at ...`, the script's encoded name does not match what Claude Code wrote on disk for this workspace. The error message lists the closest matches under `~/.claude/projects/`. Run `ls ~/.claude/projects/` to see the full set, identify the directory belonging to this workspace, and re-run the script with `--project-dir=<name>` (use the `=` form because the encoded names start with `-` and would otherwise be parsed as another flag):
+
+```
+python3 /path/to/scripts/list-chats.py <workspace> --from-projects \
+    --project-dir=-home-username-workspace
+```
+
+The same `--project-dir` flag is accepted by `collect-chats.py` and `reset-cc-project.py`.
 
 **3. Package the submission.** Zip `solution.patch` and `transcripts/` together at the workspace root. The filename uses the participant ID, the session number, and the framework used in this session:
 

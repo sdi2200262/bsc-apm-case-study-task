@@ -469,7 +469,7 @@ git add -A
 git diff --cached dbd2d16 > ../solution.patch
 \end{verbatim}
 
-\textbf{2. Collect the transcripts.} Claude Code stores transcripts under \texttt{\textasciitilde/.claude/projects/} in a per-workspace subdirectory whose name is the workspace's absolute path with every \texttt{/} replaced by \texttt{-}. List what is in your workspace's transcript directory and pick the rows that belong to the session you just finished; the \texttt{-{}-from-projects} flag tells \texttt{list-chats.py} to resolve the mapping for you:
+\textbf{2. Collect the transcripts.} Claude Code stores transcripts under \texttt{\textasciitilde/.claude/projects/} in a per-workspace subdirectory whose name is the workspace's absolute path with every character that is not an ASCII letter, digit, or hyphen replaced by \texttt{-}. The path separator \texttt{/}, the dot \texttt{.}, and the underscore \texttt{\_} all get replaced; usernames or directory names containing those characters are normalised the same way. List what is in your workspace's transcript directory and pick the rows that belong to the session you just finished; the \texttt{-{}-from-projects} flag tells \texttt{list-chats.py} to resolve the mapping for you:
 
 \begin{verbatim}
 python3 /path/to/scripts/list-chats.py \
@@ -483,7 +483,7 @@ python3 /path/to/scripts/collect-chats.py <workspace> \
     --from 2026-05-01T09:00 --to 2026-05-01T12:30
 \end{verbatim}
 
-The script copies the matching transcripts into \texttt{<workspace>/transcripts/}, each alongside the sibling subdirectory of the same uuid carrying the \texttt{subagents/} and \texttt{tool-results/} records Claude Code wrote during that session. Verify by re-running \texttt{list-chats.py} with \texttt{-{}-from-dir}; the listing enumerates the top-level transcripts only:
+The script copies the matching transcripts into \texttt{<workspace>/transcripts/}, each alongside the sibling subdirectory of the same uuid carrying the \texttt{subagents/} and \texttt{tool-results/} records Claude Code wrote during that session. Sessions that did not dispatch any subagents and had no cached tool results have no such subdirectory; the script's closing line reports them as \texttt{N session(s) had none on disk}, which is a normal report and not an error. Verify the contents by re-running \texttt{list-chats.py} with \texttt{-{}-from-dir}; the listing enumerates the top-level transcripts only:
 
 \begin{verbatim}
 python3 /path/to/scripts/list-chats.py \
@@ -491,6 +491,15 @@ python3 /path/to/scripts/list-chats.py \
 \end{verbatim}
 
 The output should match the rows you intended to collect, with the same first and last timestamps. If a row is missing, widen the time window and re-run \texttt{collect-chats.py}.
+
+If any of the three helper scripts reports \texttt{no Claude Code project directory found at ...}, the encoded name does not match what Claude Code wrote on disk for this workspace. The script lists the closest matches under \texttt{\textasciitilde/.claude/projects/}; run \texttt{ls \textasciitilde/.claude/projects/} for the full set, identify the directory belonging to this workspace, and re-run with \texttt{-{}-project-dir=<name>}. Use the \texttt{=} form because the encoded names start with \texttt{-} and would otherwise be parsed as another flag:
+
+\begin{verbatim}
+python3 /path/to/scripts/list-chats.py <workspace> --from-projects \
+    --project-dir=-home-username-workspace
+\end{verbatim}
+
+The same \texttt{-{}-project-dir} flag is accepted by \texttt{collect-chats.py} and \texttt{reset-cc-project.py}.
 
 \textbf{3. Package the submission.} Zip \texttt{solution.patch} and \texttt{transcripts/} together at the workspace root. The filename uses your participant ID, the session number, and the framework you used in this session:
 

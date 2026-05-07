@@ -54,7 +54,7 @@ This skill helps with:
 - Per-session framework CLI install: `apm` for APM (via `npm install -g agentic-pm`), or `specify` for Spec-kit (via `uvx --from git+https://github.com/github/spec-kit.git@<tag> specify ...`, where `<tag>` is `v0.8.3` or any newer release tag from https://github.com/github/spec-kit/releases). Claude Code itself is assumed already installed since this skill loads from inside it.
 - Mock environment install, lifecycle, MCP server configuration, and uninstall.
 - Workspace layout and cloning the two repositories at their pinned commits.
-- Running the participant package's helper scripts: `list-chats.py` (with `--from-projects` or `--from-dir`), `collect-chats.py`, `reset-cc-project.py`.
+- Running the participant package's helper scripts: `list-chats.py` (with `--from-projects` or `--from-dir`), `collect-chats.py`, `reset-cc-project.py`. All three accept `--project-dir=<name>` as a manual override when path encoding fails (see *Recovering from path-resolution failures* below).
 - Producing the per-session `solution.patch`, collecting transcripts into `<workspace>/transcripts/`, packaging the submission zip with the prescribed filename pattern, and submitting it through the per-session form.
 - Resetting the workspace and the transcript store between sessions.
 - Optional cleanup after both sessions have been submitted.
@@ -106,6 +106,54 @@ The participant's Claude Code permission posture may block specific patterns eve
 **Adapting to participant-specific state.** Documented setup steps assume a clean baseline; the participant's host may not be clean. When a documented step is blocked by participant-specific state (a port already in use, a previous install at the same prefix, a tool already installed at a different version, a workspace directory that already exists), inspect *only the participant-controlled object blocking the step* (the running process holding the port, the conflicting prefix's top-level listing, the existing tool's `--version` output), propose a concise plan for adapting around it with a one-line statement of why, and ask the participant for permission before acting. Do not let the inspection sweep into shipped-code surfaces (the bundled docker image filesystem, the eclass-mcp-server directory's source files, the openeclass directory's source files); if the blocking state appears to live inside one of those surfaces, surface the symptom and redirect to the study coordinator per the out-of-scope rule. Do not assume the documented step is wrong; do not silently substitute an alternative; do not patch shipped code. The participant decides whether to free the blocking state, change a participant-controlled choice (e.g., a different workspace path), or pause and contact the study coordinator.
 
 If at any point the participant prefers to run all commands themselves, step back and revert to read-only guidance: tell them what to run and what to expect, then verify the result they paste back.
+
+## Recovering from helper-script failures
+
+The three helper scripts (`list-chats.py`, `collect-chats.py`, `reset-cc-project.py`) wrap a small number of file-system operations against `~/.claude/projects/<encoded>/`. Anything those scripts do can be done by hand. When a script misbehaves, for any reason, do not stop the wrap-up flow: diagnose the immediate symptom (path resolution failed and the encoded name is wrong, the script is missing from the package, the Python interpreter is not on PATH, an unrelated runtime error surfaces, the script returns an exit code that does not match its documented contract, anything else), and fall through to the manual equivalents below. Walk the participant through whichever equivalent matches the step that just failed; the five-step contract under *Running commands on the participant's behalf* still applies to every manual command. Do not patch the script in place.
+
+Whenever a fallback is used, tell the participant in plain words what went wrong and that the manual equivalent is being run instead, then ask them to email the study coordinator (`sdi2200262@di.uoa.gr`) afterwards with the script name and the error output so the script can be fixed for future participants. The wrap-up itself does not wait for the coordinator's reply; the manual equivalents are sufficient to land the submission.
+
+If the path-resolution case is what failed, the equivalent first step is to run `ls ~/.claude/projects/` together, identify the entry that belongs to this workspace from substring overlap with the workspace path, and either re-run the script with `--project-dir=<name>` (use the `=` form because the encoded names start with `-`) or use the literal directory name in the manual commands below. If no entry there matches the workspace, Claude Code has not been launched in that workspace from this Linux environment yet; confirm with the participant before doing anything destructive.
+
+The equivalents below assume `<project-dir>` is the resolved `~/.claude/projects/<encoded>/` directory for the workspace, `<workspace>` is the workspace path the participant supplied, and `<sessionId>` is the uuid of a transcript that belongs to the session being wrapped up.
+
+**Listing transcripts in the project directory** (manual equivalent of `list-chats.py --from-projects`):
+
+```
+ls -la <project-dir>
+ls -la <project-dir>/*.jsonl
+head -1 <project-dir>/<sessionId>.jsonl
+tail -1 <project-dir>/<sessionId>.jsonl
+```
+
+The first record's `timestamp` field is the session's start; the last record's is its end. The participant's wall-clock note for when they started the session is the cross-check; transcripts whose first timestamp falls inside the session window belong to it.
+
+**Verifying the collected `transcripts/` directory** (manual equivalent of `list-chats.py --from-dir`):
+
+```
+ls -la <workspace>/transcripts
+```
+
+The directory should contain one `<sessionId>.jsonl` per main session and, optionally, one `<sessionId>/` subdirectory per session that dispatched subagents.
+
+**Copying transcripts and their sibling subdirectories** (manual equivalent of `collect-chats.py`):
+
+```
+mkdir -p <workspace>/transcripts
+cp <project-dir>/<sessionId>.jsonl <workspace>/transcripts/
+cp -r <project-dir>/<sessionId>/ <workspace>/transcripts/<sessionId>/
+```
+
+The third command runs only when `<project-dir>/<sessionId>/` exists; check with `ls -d <project-dir>/<sessionId>/` first. Sessions that did not dispatch any subagents and had no cached tool results have no such subdirectory; copy only the `.jsonl` for those, and that is the correct shape. Repeat the second and third commands for every transcript that belongs to the session being wrapped up, then re-run the listing of `<workspace>/transcripts` to verify.
+
+**Wiping the project state for this workspace** (manual equivalent of `reset-cc-project.py`). This is destructive: confirm the session zip is in the safe-storage directory, name what is being deleted in plain words, and wait for the participant's explicit go-ahead.
+
+```
+ls -la <project-dir>
+rm -rf <project-dir>
+```
+
+The `ls` step is the inventory. After `rm -rf`, the project directory is gone; Claude Code recreates it on the next launch.
 
 ## Communication style
 

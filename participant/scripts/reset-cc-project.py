@@ -12,6 +12,10 @@ project-local ``memory/`` store, and anything else Claude Code has
 cached for that workspace. Claude Code recreates the directory on the
 next launch, so session 2 starts from a fully clean baseline.
 
+The encoding-based lookup can be overridden with ``--project-dir <name>``
+(literal directory name under ``~/.claude/projects/``) for cases where
+Claude Code's slugifier diverges from what the script computes locally.
+
 This action is destructive. By default it inventories the directory's
 contents and prompts for confirmation. Pass ``--force`` to skip the
 prompt; the inventory still prints so the action stays observable.
@@ -23,33 +27,98 @@ on input errors; ``2`` when the user declines the prompt.
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import sys
 from pathlib import Path
 
 PROJECTS_ROOT = Path.home() / ".claude" / "projects"
+NON_SLUG_CHARS = re.compile(r"[^A-Za-z0-9-]")
 
 
 def encode_workspace(workspace: Path) -> str:
     """Encode an absolute workspace path the way Claude Code names project directories.
 
+    Claude Code's slugifier replaces every character that is not an ASCII
+    letter, digit, or hyphen with ``-``. That covers the path separator
+    ``/`` and also ``.`` and ``_`` characters in usernames or directory
+    names; the original rule that only handled ``/`` diverged on the
+    first participant whose username contained a dot.
+
     Args:
         workspace: Resolved absolute workspace path.
 
     Returns:
-        The encoded directory name (each ``/`` becomes ``-``).
+        The encoded directory name.
     """
-    return str(workspace).replace("/", "-")
+    return NON_SLUG_CHARS.sub("-", str(workspace))
 
 
-def resolve_project_dir(workspace: Path) -> Path:
+def _tokenise(value: str) -> set[str]:
+    """Split a string into lowercase alphanumeric tokens of length 2 or more.
+
+    Hyphens, dots, underscores, and slashes are all treated as separators.
+    Single-character tokens are dropped because they match too broadly.
+
+    Args:
+        value: Source string (a path segment or an encoded directory name).
+
+    Returns:
+        Set of lowercased tokens with length at least 2.
+    """
+    return {tok for tok in re.split(r"[^a-z0-9]+", value.lower()) if len(tok) >= 2}
+
+
+def candidate_project_dirs(workspace: Path) -> list[Path]:
+    """Find ``~/.claude/projects/`` entries that look related to ``workspace``.
+
+    Used as a fallback when the encoded lookup misses. Tokenises the
+    workspace path on every non-alphanumeric boundary, tokenises each
+    project directory the same way, and ranks by the size of the token
+    intersection. Two-or-more matching tokens are required; a single
+    short overlap (e.g., everyone shares ``home``) is filtered out.
+
+    Args:
+        workspace: Resolved absolute workspace path.
+
+    Returns:
+        Project directory paths with at least two overlapping tokens,
+        sorted by descending overlap then by name. Empty list when no
+        ``~/.claude/projects/`` entry exists or no entry passes the
+        threshold.
+    """
+    if not PROJECTS_ROOT.is_dir():
+        return []
+    workspace_tokens = _tokenise(str(workspace))
+    if not workspace_tokens:
+        return []
+    scored: list[tuple[int, str, Path]] = []
+    for entry in PROJECTS_ROOT.iterdir():
+        if not entry.is_dir():
+            continue
+        overlap = workspace_tokens & _tokenise(entry.name)
+        if len(overlap) >= 2:
+            scored.append((len(overlap), entry.name, entry))
+    scored.sort(key=lambda triple: (-triple[0], triple[1]))
+    return [entry for _, _, entry in scored]
+
+
+def resolve_project_dir(workspace: Path, override: str | None = None) -> Path:
     """Resolve a workspace path to its Claude Code project directory.
+
+    When ``override`` is set, the function looks up that exact directory
+    name under ``~/.claude/projects/`` and skips the encoding step. When
+    the encoded lookup misses, the error message lists the closest
+    matching directory names so the participant can re-run with
+    ``--project-dir <name>``.
 
     Args:
         workspace: Workspace path supplied by the participant.
+        override: Literal directory name under ``~/.claude/projects/``,
+            bypassing the encoding step.
 
     Returns:
-        Absolute path to ``~/.claude/projects/<encoded>``.
+        Absolute path to ``~/.claude/projects/<encoded-or-override>``.
 
     Raises:
         FileNotFoundError: If the workspace path does not exist or the
@@ -59,14 +128,37 @@ def resolve_project_dir(workspace: Path) -> Path:
         raise FileNotFoundError(f"workspace path does not exist: {workspace}")
     if not workspace.is_dir():
         raise FileNotFoundError(f"workspace path is not a directory: {workspace}")
+    if override:
+        project_dir = PROJECTS_ROOT / override
+        if not project_dir.is_dir():
+            raise FileNotFoundError(
+                f"no Claude Code project directory at {project_dir}; "
+                f"check the spelling against `ls {PROJECTS_ROOT}`"
+            )
+        return project_dir
     encoded = encode_workspace(workspace.resolve())
     project_dir = PROJECTS_ROOT / encoded
-    if not project_dir.exists():
-        raise FileNotFoundError(
-            f"no Claude Code project directory found at {project_dir}; "
-            f"has Claude Code been launched in {workspace}?"
+    if project_dir.is_dir():
+        return project_dir
+    candidates = candidate_project_dirs(workspace.resolve())
+    hint_lines = [
+        f"no Claude Code project directory found at {project_dir};",
+        "Claude Code may have encoded this workspace path under a different name.",
+    ]
+    if candidates:
+        hint_lines.append("Closest matches under ~/.claude/projects/:")
+        for entry in candidates[:5]:
+            hint_lines.append(f"  {entry.name}")
+        hint_lines.append(
+            "Re-run with --project-dir <name> using the matching directory above, "
+            "or list the full set with `ls ~/.claude/projects/`."
         )
-    return project_dir
+    else:
+        hint_lines.append(
+            "No related entries found. Has Claude Code been launched in "
+            f"{workspace}? List ~/.claude/projects/ to confirm."
+        )
+    raise FileNotFoundError("\n".join(hint_lines))
 
 
 def inventory_project_dir(project_dir: Path) -> tuple[list[Path], list[Path]]:
@@ -146,6 +238,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Delete without the interactive confirmation prompt.",
     )
+    parser.add_argument(
+        "--project-dir",
+        default=None,
+        help=(
+            "Literal directory name under ~/.claude/projects/ to use, "
+            "bypassing the encoded-path lookup. Use this when path encoding "
+            "fails (e.g., the username contains characters Claude Code "
+            "encodes differently than expected)."
+        ),
+    )
     return parser
 
 
@@ -160,7 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     """
     args = build_parser().parse_args(argv)
     try:
-        project_dir = resolve_project_dir(args.workspace)
+        project_dir = resolve_project_dir(args.workspace, args.project_dir)
     except FileNotFoundError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
