@@ -1,0 +1,179 @@
+# In-VM setup
+
+You are here because the state probe identified that the assistant is in the Linux environment with the participant package on disk and Claude Code loaded. This file covers the path from that state to a fully prepared workspace ready for the first session: toolchain installed, mock environment running, codebases cloned at their pinned commits, MCP wiring verified.
+
+The phases run in order:
+
+1. Toolchain.
+2. Mock environment.
+3. Workspace and codebases.
+
+Per-session framework CLI install (APM or Spec-kit) lives in [session.md](session.md), since it differs by session.
+
+## 1. Toolchain
+
+The case-study work needs a container runtime (Docker Engine with Compose v2), a C build chain (`gcc`, `make`, `valgrind`, `pkg-config`, plus the `libcurl` and `libxml2` development headers), two scripting runtimes (Python 3.10 or newer with `uv`, and Node.js with `npm`), and a handful of command-line utilities (`git`, `curl`, `tar`, `openssl`, `bash` 3.2 or newer, `gh`).
+
+Install Docker first via the official convenience script. Download it before running so the harness can review it:
+
+```
+curl -fsSL https://get.docker.com -o /tmp/install-docker.sh
+sudo sh /tmp/install-docker.sh
+sudo usermod -aG docker $USER
+```
+
+The new `docker` group membership takes effect on the next login or after `newgrp docker`. Within Claude Code, prefer `sg docker -c '<cmd>'` instead of `newgrp`: `sg` runs the command in a subshell with the docker group active for that single invocation and returns control to the parent shell, so the conversation's working shell is preserved.
+
+Install everything else with apt and the official uv installer:
+
+```
+sudo apt-get update
+sudo apt-get install -y \
+    build-essential pkg-config valgrind \
+    libcurl4-openssl-dev libxml2-dev \
+    git curl tar openssl gh python3 python3-pip npm
+curl -LsSf https://astral.sh/uv/install.sh -o /tmp/install-uv.sh
+sh /tmp/install-uv.sh
+```
+
+If `uv --version` reports `command not found` immediately after the install, run `source ~/.local/bin/env` once or open a new login shell so the installer's PATH update takes effect. The C minimums are `gcc` 9.0 (for C11), `libcurl` 7.81.0, `libxml2` 2.9.13; Ubuntu 22.04 and 24.04 both satisfy them. Verify the toolchain:
+
+```
+gcc --version
+pkg-config --modversion libcurl
+pkg-config --modversion libxml-2.0
+valgrind --version
+python3 --version
+node --version
+npm --version
+uv --version
+```
+
+## 2. Mock environment
+
+The mock environment is a self-contained, containerised stack the participant runs locally during each session. It exposes the surfaces the implementation needs to integrate with, pre-loaded with test data so every participant runs against identical state.
+
+### Download and install
+
+Two architecture-specific releases ship from the same repository as the participant package:
+
+- Tag `bsc-apm-case-study-task` ships `bsc-apm-amd64.tar.gz` for x86_64 hosts (Intel and AMD Linux machines, the Linux VM on an Intel Mac).
+- Tag `bsc-apm-case-study-task-arm64` ships `bsc-apm-arm64.tar.gz` for arm64 hosts (Apple Silicon Macs running a Linux VM, arm64 Linux servers).
+
+Identify architecture with `uname -m`: `x86_64` means amd64, `aarch64` or `arm64` means arm64. Pick a prefix on disk for the mock environment, separate from the workspace (`<mock>` is the placeholder; `~/.bsc-apm` is a reasonable default). Run *one* of the two download commands below, the one that matches the architecture:
+
+```
+mkdir -p <mock> && cd <mock>
+
+# x86_64 hosts:
+curl -L -o bsc-apm-amd64.tar.gz \
+    https://github.com/sdi2200262/bsc-apm-case-study-task/releases/download/bsc-apm-case-study-task/bsc-apm-amd64.tar.gz
+
+# arm64 hosts:
+curl -L -o bsc-apm-arm64.tar.gz \
+    https://github.com/sdi2200262/bsc-apm-case-study-task/releases/download/bsc-apm-case-study-task-arm64/bsc-apm-arm64.tar.gz
+```
+
+Then unpack and bring the stack up. `./install` loads the bundled Docker images, generates self-signed TLS certificates into `./certs/`, and writes a pre-configured `.env` alongside. `./scripts/up` brings the three containers up, performs openeclass's first-time install on first run, and applies the test data; this takes a few minutes on a clean host:
+
+```
+tar -xzf bsc-apm-*.tar.gz
+./install
+./scripts/up
+```
+
+The stack listens on two URLs once it is ready:
+
+- `http://localhost/` for the openeclass instance.
+- `https://localhost:18443/` for the mock authentication service.
+
+Ports 80 and 18443 must be free on the Linux environment. Port 80 is the default HTTP port and is more commonly held by another service than 18443 is; before running `./scripts/up`, check both with `ss -ltn '( sport = :80 or sport = :18443 )'`. If either is held, identify the holder (`sudo lsof -iTCP:<port> -sTCP:LISTEN` or `sudo fuser <port>/tcp`), state a concise plan for freeing it, and ask the participant for permission before stopping anything. Do not propose changing the port mapping; the testing environment depends on these specific ports.
+
+### Lifecycle commands
+
+Once installed, manage the environment from its prefix:
+
+- `./scripts/up`: bring the stack up. Idempotent.
+- `./scripts/down`: stop the stack; named volumes survive.
+- `./scripts/status`: probe each service from the mock side and report whether the stack itself is healthy.
+- `./scripts/verify-mcp --mcp-root <path>`: consumer-side complement to `status`; probes whether an `eclass-mcp-server` checkout authenticates against the mock with the `.env` and `certs/` it has been given, and prints `wiring ok` on success. Run only at initial setup or after a between-sessions reset, when the checkout is at the pinned baseline (`dbd2d16`) with no tracked-file changes; the script verifies wiring against the baseline auth code only and refuses to run otherwise.
+- `./scripts/logs`: tail container logs.
+- `./scripts/reset`: drop database state and re-apply the test data.
+
+A reset during a session is unusual and reserved for unusual situations (for instance, recovering after a destructive experiment by the AI); when needed, `./scripts/reset` returns the environment to its initial state.
+
+### Uninstall
+
+To remove the mock environment from the machine after the study, stop the stack and drop its volumes (`down -v`), remove the loaded images, and delete the prefix:
+
+```
+docker compose -f <mock>/compose.yaml down -v
+docker rmi bsc-apm/openeclass:dev bsc-apm/mock-cas:dev
+rm -rf <mock>
+```
+
+## 3. Workspace and codebases
+
+The participant package's `task/` directory holds `PRD.md` (the requirements the participant implements against), `PROMPT.md` (the message the participant gives the AI to open the session), and `README.txt` (a throwaway with the clone commands). The *workspace* is the directory in which the participant opens Claude Code on the Linux environment for sessions; it is the AI's working directory for the session, separate from the participant-package directory.
+
+The workspace must end up with this exact layout:
+
+```
+<workspace>/
+|-- PRD.md
+|-- PROMPT.md
+|-- eclass-mcp-server/      # implementation codebase
+`-- openeclass/             # legacy PHP codebase, read-only reference
+```
+
+Create the workspace as a fresh directory of the participant's choice (`~/workspace/` is the default the helper proposes; before creating it, announce the default in plain terms and offer the participant the chance to specify a different path). Copy `PRD.md` and `PROMPT.md` from the participant package's `task/` directory:
+
+```
+mkdir -p <workspace>
+cp <participant-package>/task/PRD.md <workspace>/
+cp <participant-package>/task/PROMPT.md <workspace>/
+```
+
+Clone `eclass-mcp-server` and check out the pinned commit `dbd2d16`. This commit is the patch baseline: every diff submitted is computed against it.
+
+```
+cd <workspace>
+git clone https://github.com/sdi2200262/eclass-mcp-server.git
+cd eclass-mcp-server
+git checkout dbd2d16
+uv sync --dev --all-extras
+cd ..
+```
+
+Clone `openeclass` at its pinned commit `e8b3329`. The AI treats this codebase as a read-only reference, and the participant keeps it that way:
+
+```
+cd <workspace>
+git clone https://github.com/gunet/openeclass.git
+cd openeclass
+git checkout e8b3329
+cd ..
+```
+
+### MCP server configuration
+
+The `.env` and `certs/` that `./install` wrote inside `<mock>` are everything the implementation needs to authenticate against the mock. Copy both into the `eclass-mcp-server/` checkout, preserving the `certs/` subdirectory:
+
+```
+cp <mock>/.env <workspace>/eclass-mcp-server/.env
+cp -r <mock>/certs <workspace>/eclass-mcp-server/certs
+```
+
+The `.env` references the certificate by relative path, so no further configuration is required.
+
+### Verify
+
+Verify wiring with the testing environment's `verify-mcp` script, which performs a single SSO login and logout using the credentials in the just-copied `.env`:
+
+```
+<mock>/scripts/verify-mcp --mcp-root <workspace>/eclass-mcp-server
+```
+
+It prints `wiring ok` on success and names the missing file or environment variable on failure.
+
+At this point in-VM setup is complete. The workspace is ready for the first session; framework CLI install and session start are covered in [session.md](session.md).

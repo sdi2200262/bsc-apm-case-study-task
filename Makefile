@@ -34,7 +34,6 @@ GUIDE_DIR = participant/guide
 GUIDE_TEX = participant-guide-cc.tex
 GUIDE_PDF = $(GUIDE_DIR)/participant-guide-cc.pdf
 TASK_DIR = participant/task
-SCRIPTS_DIR = participant/scripts
 SKILLS_DIR = participant/skills
 RELEASE_ZIP = $(RELEASE_DIR)/participant-package.zip
 
@@ -98,14 +97,10 @@ participant-guide:
 participant-package: participant-guide
 	rm -rf $(PACKAGE_STAGING_DIR)
 	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/task
-	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/scripts
 	cp $(GUIDE_PDF) $(PACKAGE_STAGING_DIR)/participant-package/
 	cp $(TASK_DIR)/PRD.md $(PACKAGE_STAGING_DIR)/participant-package/task/
 	cp $(TASK_DIR)/PROMPT.md $(PACKAGE_STAGING_DIR)/participant-package/task/
 	cp $(TASK_DIR)/README.txt $(PACKAGE_STAGING_DIR)/participant-package/task/
-	cp $(SCRIPTS_DIR)/list-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
-	cp $(SCRIPTS_DIR)/collect-chats.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
-	cp $(SCRIPTS_DIR)/reset-cc-project.py $(PACKAGE_STAGING_DIR)/participant-package/scripts/
 	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/.claude
 	cp -r $(SKILLS_DIR) $(PACKAGE_STAGING_DIR)/participant-package/.claude/skills
 	rm -f $(RELEASE_ZIP)

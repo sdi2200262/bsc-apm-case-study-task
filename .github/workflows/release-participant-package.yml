@@ -36,16 +36,12 @@ jobs:
           test -f /tmp/smoke/participant-package/task/PRD.md
           test -f /tmp/smoke/participant-package/task/PROMPT.md
           test -f /tmp/smoke/participant-package/task/README.txt
-          test -f /tmp/smoke/participant-package/scripts/list-chats.py
-          test -f /tmp/smoke/participant-package/scripts/collect-chats.py
-          test -f /tmp/smoke/participant-package/scripts/reset-cc-project.py
           test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/SKILL.md
-          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/system-requirements.md
-          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/ai-tools.md
-          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/workspace.md
-          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/mock-environment.md
-          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/session-workflow.md
-          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/submission.md
+          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/host-setup.md
+          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/in-vm-setup.md
+          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/session.md
+          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/between-sessions.md
+          test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/cleanup.md
 
       - name: Publish release
         env:
@@ -53,12 +49,9 @@ jobs:
         run: |
           TAG=participant-package
           TITLE="Participant package"
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" release/participant-package.zip --clobber
-          else
-            gh release create "$TAG" \
-              --title "$TITLE" \
-              --target "$GITHUB_SHA" \
-              --latest=true \
-              release/participant-package.zip
-          fi
+          gh release delete "$TAG" --cleanup-tag --yes || true
+          gh release create "$TAG" \
+            --title "$TITLE" \
+            --target "$GITHUB_SHA" \
+            --latest=true \
+            release/participant-package.zip
