@@ -9,7 +9,6 @@ Source for the participant package release. The contents of this directory bundl
 | [`guide/`](guide/) | Participation guide (LaTeX source, compiled PDF, build assets) |
 | [`task/PRD.md`](task/PRD.md) | Product Requirements Document; the single source of truth for the implementation |
 | [`task/PROMPT.md`](task/PROMPT.md) | Default prompt to start the AI assistant conversation |
-| [`task/README.txt`](task/README.txt) | Throwaway one-shot setup notes carrying the clone commands; the participant deletes this after setup |
 | [`skills/bsc-apm-study-helper/`](skills/bsc-apm-study-helper/) | Claude Code skill that drives the participant's setup, per-session lifecycle, between-sessions reset, and cleanup, both from a host AI assistant and from inside the Linux environment |
 
 ## Task Overview

@@ -114,7 +114,7 @@ rm -rf <mock>
 
 ## 3. Workspace and codebases
 
-The participant package's `task/` directory holds `PRD.md` (the requirements the participant implements against), `PROMPT.md` (the message the participant gives the AI to open the session), and `README.txt` (a throwaway with the clone commands). The *workspace* is the directory in which the participant opens Claude Code on the Linux environment for sessions; it is the AI's working directory for the session, separate from the participant-package directory.
+The participant package's `task/` directory holds `PRD.md` (the requirements the participant implements against) and `PROMPT.md` (the message the participant gives the AI to open the session). The *workspace* is the directory in which the participant opens Claude Code on the Linux environment for sessions; it is the AI's working directory for the session, separate from the participant-package directory.
 
 The workspace must end up with this exact layout:
 

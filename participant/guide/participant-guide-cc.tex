@@ -179,8 +179,7 @@ participant-package/
 |-- participant-guide-cc.pdf       # this document
 |-- task/
 |   |-- PRD.md                     # Product Requirements Document
-|   |-- PROMPT.md                  # default opening prompt for the AI
-|   `-- README.txt                 # one-shot setup notes; delete after use
+|   `-- PROMPT.md                  # default opening prompt for the AI
 `-- .claude/
     `-- skills/
         `-- bsc-apm-study-helper/  # Claude Code skill (see Section 3.1)
@@ -332,7 +331,7 @@ uvx --from git+https://github.com/github/spec-kit.git@v0.8.3 \
 \section{Workspace}
 \label{sec:workspace}
 
-The participant package's \texttt{task/} directory holds \texttt{PRD.md} (the requirements you implement against), \texttt{PROMPT.md} (the message you give the AI to open the session), and a throwaway \texttt{README.txt} with the clone commands for the two repositories at their pinned commits. The \emph{workspace} is the directory in which you open Claude Code on your Linux environment (native or inside the VM); it is the AI's working directory for the session, and it must end up with this exact layout:
+The participant package's \texttt{task/} directory holds \texttt{PRD.md} (the requirements you implement against) and \texttt{PROMPT.md} (the message you give the AI to open the session). The \emph{workspace} is the directory in which you open Claude Code on your Linux environment (native or inside the VM); it is the AI's working directory for the session, and it must end up with this exact layout:
 
 \begin{verbatim}
 <workspace>/
@@ -342,7 +341,7 @@ The participant package's \texttt{task/} directory holds \texttt{PRD.md} (the re
 `-- openeclass/             # legacy PHP codebase (read-only reference)
 \end{verbatim}
 
-Create the workspace as a fresh directory of your choice on the Linux filesystem (\texttt{\textasciitilde/workspace/} is a reasonable default), copy \texttt{PRD.md} and \texttt{PROMPT.md} into it from the participant package's \texttt{task/} directory, and clone the two repositories alongside them following the next subsection. \texttt{README.txt} carries the same clone commands for convenience and has no further role.
+Create the workspace as a fresh directory of your choice on the Linux filesystem (\texttt{\textasciitilde/workspace/} is a reasonable default), copy \texttt{PRD.md} and \texttt{PROMPT.md} into it from the participant package's \texttt{task/} directory, and clone the two repositories alongside them following the next subsection.
 
 \subsection{Cloning the codebases}
 \label{sec:cloning}

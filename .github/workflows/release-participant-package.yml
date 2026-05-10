@@ -35,7 +35,6 @@ jobs:
           test -f /tmp/smoke/participant-package/participant-guide-cc.pdf
           test -f /tmp/smoke/participant-package/task/PRD.md
           test -f /tmp/smoke/participant-package/task/PROMPT.md
-          test -f /tmp/smoke/participant-package/task/README.txt
           test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/SKILL.md
           test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/host-setup.md
           test -f /tmp/smoke/participant-package/.claude/skills/bsc-apm-study-helper/references/in-vm-setup.md

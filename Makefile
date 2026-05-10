@@ -100,7 +100,6 @@ participant-package: participant-guide
 	cp $(GUIDE_PDF) $(PACKAGE_STAGING_DIR)/participant-package/
 	cp $(TASK_DIR)/PRD.md $(PACKAGE_STAGING_DIR)/participant-package/task/
 	cp $(TASK_DIR)/PROMPT.md $(PACKAGE_STAGING_DIR)/participant-package/task/
-	cp $(TASK_DIR)/README.txt $(PACKAGE_STAGING_DIR)/participant-package/task/
 	mkdir -p $(PACKAGE_STAGING_DIR)/participant-package/.claude
 	cp -r $(SKILLS_DIR) $(PACKAGE_STAGING_DIR)/participant-package/.claude/skills
 	rm -f $(RELEASE_ZIP)
