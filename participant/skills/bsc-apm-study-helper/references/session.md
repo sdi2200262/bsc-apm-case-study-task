@@ -4,7 +4,7 @@ You are here because the participant is about to start a session, is mid-session
 
 ## Before starting
 
-Each session uses one of two AI-assisted development frameworks (APM or Spec-kit, as assigned for this session). The participant package does not bundle either framework; install the assigned framework's CLI before the session begins.
+Each session uses one of two AI-assisted development frameworks: APM or Spec-kit. The participant has been told privately by the coordinator which framework is assigned to which session; the helper has not, and does not retain across sessions. Before any framework-specific step, ask the participant which framework is assigned to this session and wait for the answer. The two frameworks have different install models (APM ships as an npm package installed globally; Spec-kit is invoked via `uvx` from a release tag on every call, with no persistent install needed), so follow the framework-specific subsection below for whichever is assigned. The framework's own workspace bootstrap runs at session start, covered below in *Starting a session*.
 
 ### Agentic Project Management (APM)
 
@@ -17,25 +17,59 @@ apm --version
 
 ### GitHub Spec-kit
 
-Spec-kit (https://github.github.io/spec-kit/) runs through `uvx` from a release tag of the upstream repository; the CLI is invoked as `specify`, prefixed by the same `uvx --from` expression on every invocation. `v0.8.3` is the floor verified for this study; any newer release tag listed at https://github.com/github/spec-kit/releases is also acceptable.
+Spec-kit (https://github.github.io/spec-kit/) runs through `uvx` from a release tag of the upstream repository; the CLI is invoked as `specify`, prefixed by the same `uvx --from` expression on every invocation. The study does not pin a specific tag: open https://github.com/github/spec-kit/releases, pick the current release, and use that tag for every Spec-kit command in this session. `v0.8.3` is the floor verified for the study; anything newer is fine.
 
 ```
-uvx --from git+https://github.com/github/spec-kit.git@v0.8.3 \
+uvx --from git+https://github.com/github/spec-kit.git@<tag> \
     specify --help
 ```
 
+`<tag>` is the release tag picked from the releases page above (e.g. the current `v0.8.x`).
+
+## Orient before starting
+
+Before the participant crosses into the workspace, give them a short orientation to what they will build, then close the door on further task questions and send them to read the PRD and PROMPT themselves.
+
+The orientation stays small. In one or two sentences, name what the task is: the participant extends the Python `eclass-mcp-server` with two new announcement tools (`get_course_announcements` and `get_general_announcements`), and produces a standalone C replica at `eclass-mcp-server/c-replica/` that exposes all six tools (the four baseline tools plus the two new ones) and behaves as a drop-in replacement for the Python server. `PRD.md` is the single source of truth: submissions are validated and evaluated against exactly what the PRD specifies, against the same mock environment the participant has running locally.
+
+In one short paragraph, tie the scaffolding to what comes next: the running mock environment is the system the implementation integrates against and the same surface the post-session evaluation runs against, so testing and iterating against it during the session is the most direct way to check the implementation; the `eclass-mcp-server/` checkout in the workspace is what gets extended; the `openeclass/` checkout is the read-only PHP reference; `solution.patch` at wrap-up is the diff against the pinned baseline `dbd2d16`.
+
+After the orientation, do not answer further questions about what the task entails, what the requirements are, what acceptance looks like, or how to interpret any part of the PRD or PROMPT. Redirect to `<workspace>/PRD.md` for the requirements and `<workspace>/PROMPT.md` for the opening prompt; the participant reads both before the session starts. Logistics questions (where files are, how to start the framework, how to wrap up) stay in scope; task-content questions go to the PRD.
+
 ## Starting a session
 
-Note the wall-clock start time, then open a Claude Code session in the workspace as its working directory:
+Note the wall-clock start time. The helper Claude Code session running this skill is project-scoped to the participant-package directory; to switch into the workspace, the participant exits the helper, opens a fresh shell, runs the assigned framework's bootstrap in the workspace, then starts a new Claude Code session there:
 
 ```
+# in the helper terminal:
+/exit       # or press Ctrl+D
+
+# then in a fresh shell:
 cd <workspace>
+```
+
+From the workspace shell, run the assigned framework's workspace bootstrap. The framework's own interactive setup takes over from here; consult the framework's documentation for what to choose during bootstrap and for the rest of the workflow.
+
+For APM:
+
+```
+apm init
+```
+
+For Spec-kit (use the same `<tag>` chosen at install time; `--here` initialises in the existing workspace rather than creating a new subdirectory):
+
+```
+uvx --from git+https://github.com/github/spec-kit.git@<tag> \
+    specify init --here
+```
+
+Once the bootstrap completes, start Claude Code from the same workspace shell:
+
+```
 claude
 ```
 
-The skill is project-scoped to the participant-package directory, not the workspace, so the workspace's Claude Code session does not load this skill. That is intentional: the implementation work is unassisted by the helper.
-
-Each framework has its own way of starting the work. Follow the assigned framework's documentation and point it at `PROMPT.md` as the task.
+The workspace's Claude Code session does not load this skill, by design: the implementation work is unassisted by the helper. With the framework bootstrapped, follow the framework's documentation for how it expects to be driven, and point it at `PROMPT.md` as the task.
 
 ## Working on the task
 

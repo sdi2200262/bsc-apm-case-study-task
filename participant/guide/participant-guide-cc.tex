@@ -243,6 +243,8 @@ limactl start --name=task --cpus=4 --memory=8 --disk=20 \
 limactl shell task
 \end{verbatim}
 
+\texttt{limactl shell task} opens a shell inside the VM but lands you at the host directory you launched from, not the VM's own home; \texttt{cd \textasciitilde} before any download or extraction so files land on the VM filesystem.
+
 On macOS, if neither Multipass nor Lima works on your host, UTM (\url{https://mac.getutm.app}) is a secondary option: free, open source, GUI-driven. Install Ubuntu 24.04 from the official ISO; setup takes longer than the CLI tools because the Ubuntu installer runs interactively.
 
 \textbf{Windows.} Install WSL2 with an Ubuntu 24.04 distribution following the official Microsoft instructions at \url{https://learn.microsoft.com/en-us/windows/wsl/install}, then follow the native-Linux path inside the WSL2 shell.
@@ -257,7 +259,7 @@ The Linux environment needs at least 4 vCPUs, 8 GB of RAM, and a 20 GB virtual d
 \subsection{Tools and libraries}
 \label{sec:tools}
 
-The case-study work needs a container runtime (Docker Engine with Compose v2), a C build chain (\texttt{gcc}, \texttt{make}, \texttt{valgrind}, \texttt{pkg-config}, plus the \texttt{libcurl} and \texttt{libxml2} development headers), two scripting runtimes (Python 3.10 or newer with \texttt{uv}, and Node.js with \texttt{npm}), and a handful of command-line utilities (\texttt{git}, \texttt{curl}, \texttt{tar}, \texttt{openssl}, \texttt{bash} 3.2 or newer, and \texttt{gh}). Install Docker first via the official convenience script. Download it before running so you can read it:
+The case-study work needs a container runtime (Docker Engine with Compose v2), a C build chain (\texttt{gcc}, \texttt{make}, \texttt{valgrind}, \texttt{pkg-config}, plus the \texttt{libcurl} and \texttt{libxml2} development headers), two scripting runtimes (Python 3.10 or newer with \texttt{uv}, and Node.js with \texttt{npm}), and a handful of command-line utilities (\texttt{git}, \texttt{curl}, \texttt{tar}, \texttt{zip}, \texttt{unzip}, \texttt{openssl}, \texttt{bash} 3.2 or newer, and \texttt{gh}). Install Docker first via the official convenience script. Download it before running so you can read it:
 
 \begin{verbatim}
 curl -fsSL https://get.docker.com -o /tmp/install-docker.sh
@@ -272,7 +274,7 @@ sudo apt-get update
 sudo apt-get install -y \
     build-essential pkg-config valgrind \
     libcurl4-openssl-dev libxml2-dev \
-    git curl tar openssl gh python3 python3-pip npm
+    git curl tar zip unzip openssl gh python3 python3-pip npm
 curl -LsSf https://astral.sh/uv/install.sh -o /tmp/install-uv.sh
 sh /tmp/install-uv.sh
 \end{verbatim}
@@ -293,7 +295,7 @@ uv --version
 \section{AI tools}
 \label{sec:aitools}
 
-The session uses a coding-agent CLI (Claude Code) and one of two AI-assisted development frameworks (APM or Spec-kit). The participant package does not bundle any of them. Install Claude Code once before either session, and install the assigned framework's CLI before that session begins. The system requirements in Section~\ref{sec:requirements} cover the underlying tools all three depend on.
+The session uses a coding-agent CLI (Claude Code) and one of two AI-assisted development frameworks (APM or Spec-kit). The participant package does not bundle any of them. Install Claude Code once before either session; the two framework subsections below cover their own install models (APM ships as a global npm package; Spec-kit is invoked via \texttt{uvx} from a release tag on every call, with no persistent install needed). Set up whichever framework is assigned to your current session before that session begins. The system requirements in Section~\ref{sec:requirements} cover the underlying tools all three depend on.
 
 \subsection{Claude Code}
 \label{sec:aitools:claude}
@@ -321,10 +323,10 @@ apm --version
 \subsection{GitHub Spec-kit}
 \label{sec:aitools:speckit}
 
-Spec-kit runs through \texttt{uvx} from a release tag of the upstream repository; the CLI is invoked as \texttt{specify}, prefixed by the same \texttt{uvx --from} expression on every invocation. \texttt{v0.8.3} is the floor verified for this study; any newer release tag listed at \url{https://github.com/github/spec-kit/releases} is also acceptable.
+Spec-kit runs through \texttt{uvx} from a release tag of the upstream repository; the CLI is invoked as \texttt{specify}, prefixed by the same \texttt{uvx --from} expression on every invocation. The study does not pin a specific tag: open \url{https://github.com/github/spec-kit/releases}, pick the current release, and use that tag for every Spec-kit command in your session. \texttt{v0.8.3} is the floor verified for the study; anything newer is fine.
 
 \begin{verbatim}
-uvx --from git+https://github.com/github/spec-kit.git@v0.8.3 \
+uvx --from git+https://github.com/github/spec-kit.git@<tag> \
     specify --help
 \end{verbatim}
 
@@ -467,7 +469,7 @@ Note the wall-clock start time, then open Claude Code with the workspace as its 
 \subsection{Working on the task}
 \label{sec:working}
 
-Work for up to three hours and stop at the three-hour mark whether or not you have finished. Use only the framework assigned to your current session and follow its documented workflow as written; the study compares frameworks as documented, not as adapted on the fly. Do not run the participant package's helper scripts during the session, and do not delete any \texttt{.jsonl} file from your workspace's transcript directory; those are your transcripts and are needed in your submission.
+Work for up to three hours and stop at the three-hour mark whether or not you have finished. Use only the framework assigned to your current session and follow its documented workflow as written; the study compares frameworks as documented, not as adapted on the fly. The mock environment running locally is the same surface the post-session evaluation runs against, so testing your implementation against it as you go is the most direct way to check it against the PRD. Do not delete any \texttt{.jsonl} file from your workspace's transcript directory; those are your transcripts and are needed in your submission.
 
 \subsection{Wrapping up}
 \label{sec:wrapping}

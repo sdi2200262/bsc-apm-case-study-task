@@ -35,7 +35,7 @@ git reset --hard e8b3329
 git clean -fdx
 ```
 
-## 3. Sweep the workspace
+## 3. List the workspace contents
 
 Confirm the workspace root contains exactly four entries: `PRD.md`, `PROMPT.md`, `eclass-mcp-server/`, `openeclass/`:
 

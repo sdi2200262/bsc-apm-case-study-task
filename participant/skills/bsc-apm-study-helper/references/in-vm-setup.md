@@ -12,7 +12,7 @@ Per-session framework CLI install (APM or Spec-kit) lives in [session.md](sessio
 
 ## 1. Toolchain
 
-The case-study work needs a container runtime (Docker Engine with Compose v2), a C build chain (`gcc`, `make`, `valgrind`, `pkg-config`, plus the `libcurl` and `libxml2` development headers), two scripting runtimes (Python 3.10 or newer with `uv`, and Node.js with `npm`), and a handful of command-line utilities (`git`, `curl`, `tar`, `openssl`, `bash` 3.2 or newer, `gh`).
+The case-study work needs a container runtime (Docker Engine with Compose v2), a C build chain (`gcc`, `make`, `valgrind`, `pkg-config`, plus the `libcurl` and `libxml2` development headers), two scripting runtimes (Python 3.10 or newer with `uv`, and Node.js with `npm`), and a handful of command-line utilities (`git`, `curl`, `tar`, `zip`, `unzip`, `openssl`, `bash` 3.2 or newer, `gh`). The wrap-up step at the end of each session uses `zip` to package the submission, so it must be present before session 1 ends.
 
 Install Docker first via the official convenience script. Download it before running so the harness can review it:
 
@@ -31,7 +31,7 @@ sudo apt-get update
 sudo apt-get install -y \
     build-essential pkg-config valgrind \
     libcurl4-openssl-dev libxml2-dev \
-    git curl tar openssl gh python3 python3-pip npm
+    git curl tar zip unzip openssl gh python3 python3-pip npm
 curl -LsSf https://astral.sh/uv/install.sh -o /tmp/install-uv.sh
 sh /tmp/install-uv.sh
 ```

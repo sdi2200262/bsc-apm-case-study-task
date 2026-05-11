@@ -37,7 +37,11 @@ limactl start --name=task --cpus=4 --memory=8 --disk=20 \
 limactl shell task
 ```
 
-`limactl shell task` opens an interactive shell inside the VM.
+`limactl shell task` opens an interactive shell inside the VM. Lima mounts the host's home directory into the VM and lands the new shell at the same path `limactl shell task` was launched from on the host (e.g. `/Users/<user>/Documents/...`), not at the VM's own home. Change to the VM's home before any file operation in the steps below, otherwise downloads and extractions land on the host mount:
+
+```
+cd ~
+```
 
 ## macOS fallback: UTM
 
@@ -53,6 +57,12 @@ WSL2 shares the host filesystem under `/mnt/c/`, but the participant package, wo
 
 You are now in a shell inside the Linux environment, regardless of which path got you here. The remaining steps put the participant package on this filesystem, install Claude Code, and hand off to the in-VM phase.
 
+If commands like `clear` error with `'<term>': unknown terminal type` after entering the VM (common when the host terminal is Ghostty, Wezterm, Kitty, or Alacritty and the VM's terminfo does not know that name), the VM shell inherited a `TERM` value the VM cannot resolve. Fall back to a portable value for the rest of the shell, then continue:
+
+```
+export TERM=xterm-256color
+```
+
 ### 1. Get the participant package inside the Linux environment
 
 Re-download the package from the public release URL. This is the simplest path on every host: no host-to-VM file transfer, no shared-folder configuration. The same URL the host AI fetched the package from earlier:
@@ -61,6 +71,12 @@ Re-download the package from the public release URL. This is the simplest path o
 cd ~
 curl -L -o participant-package.zip \
     https://github.com/sdi2200262/bsc-apm-case-study-task/releases/download/participant-package/participant-package.zip
+```
+
+Some minimal Linux base images (Lima's default cloud-init image, for example) do not ship `unzip`. Install it on demand if it is missing, then extract the package:
+
+```
+command -v unzip >/dev/null || { sudo apt-get update && sudo apt-get install -y unzip ; }
 unzip participant-package.zip
 ```
 
@@ -78,7 +94,12 @@ bash /tmp/install-cc.sh
 claude --version
 ```
 
-`claude --version` prints the installed version. If the command is not found, the installer's PATH update has not taken effect yet; either open a new shell or `source` the rc file the installer printed.
+`claude --version` prints the installed version. If the command is not found, the installer wrote its PATH update to a login-shell startup file (typically `~/.profile`) but the current shell is non-login (Lima's `limactl shell task` opens a non-login shell, for example), so the update has not been applied to this shell. The installer prints which file it wrote to; source that file, or open a new login shell, before continuing:
+
+```
+source ~/.profile     # or whichever file the installer named
+claude --version
+```
 
 If the URL above fails to resolve at the time of install, fall back to the official Claude Code install instructions at https://docs.claude.com/en/docs/claude-code.
 
