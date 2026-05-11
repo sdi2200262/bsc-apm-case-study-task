@@ -31,10 +31,18 @@ Follow [in-vm-setup.md](in-vm-setup.md), Uninstall.
 
 ## Delete the participant package
 
-Optional; the package has no further role:
+Optional; the package has no further role. The package's default location is the host filesystem (where the participant first downloaded and unzipped it):
 
 ```
 rm -rf <participant-package>
 ```
+
+If the participant also transferred a copy into the VM during setup (only when they switched to an in-VM Claude Code as the helper), remove that copy too:
+
+```
+rm -rf ~/participant-package
+```
+
+Skip the second command if no in-VM copy ever existed.
 
 The safe-storage directory and its contents are kept. After cleanup, the participant has no further use for this skill.

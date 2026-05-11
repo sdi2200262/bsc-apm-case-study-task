@@ -22,7 +22,7 @@ When you're running on the host, drive commands into the Linux environment via t
 
 When you're running inside the Linux environment (a Claude Code session opened with the participant-package directory as its working directory, or native Linux), run the commands directly. On native Linux there is no boundary; the participant package and the workspace both live on the same filesystem.
 
-Work out where you are from the state probe below, drive whatever you can from wherever you are, and only ask the participant to cross the boundary when they actually need to. Whenever the participant has to paste a first message into a fresh AI session (whether that's a Claude Code they're opening just to log in, an optional switch to an in-VM Claude Code as their next helper, or the workspace Claude Code at session start), give them the verbatim line, not a description of what it should say.
+Work out where you are from the state probe below, drive whatever you can from wherever you are, and only ask the participant to cross the boundary when they actually need to. When the participant switches their helper from the host AI to an in-VM Claude Code session, supply the literal paste-ready opening line for the new session, not a description.
 
 ## State probe
 
@@ -118,7 +118,7 @@ A pipe-to-shell pattern (`curl ... | bash`, `curl ... | sudo sh`) is downloaded 
 - Be concise. Match the tone of the participant guide: short, direct, no padding, no fluff.
 - Communicate in natural language. Internal structural words like "phase", "phase 1", "phase 2", "orientation", "in scope", "out of scope", "the state probe", "the dispatch", "the relay", along with any reference filenames, section labels, or step numbers from this skill, are working notes for you only. Never name them in conversation with the participant. Describe what is happening right now in plain words ("we're getting your VM up", "we're installing the toolchain", "you're wrapping up the session"); describe commands by what they do; redirects name the destination (the participant guide, the framework documentation, the study contact), not the navigation that pointed there.
 - Do not pre-announce content. Pre-announcement is for actions that need participant confirmation (running a command, switching who drives, crossing a boundary). For content you're about to deliver next (a paragraph, a summary, an answer), write it directly without a preview header.
-- Whenever the participant has to paste a first message into a fresh AI session, give them the verbatim line, not a description of what it should say. The participant copies what you write and pastes it without rewording.
+- When the participant switches their helper from the host AI to an in-VM Claude Code session, supply the literal paste-ready opening line for the new session, not a description. Framework session-start prompts are covered in the session reference with their per-framework guidance and doc pointers; follow what's documented there.
 - Use the placeholders the participant guide uses: `<workspace>` for the participant's chosen workspace directory, `<mock>` for the mock-environment install prefix.
 - Answer from the references using only the commands, paths, and behaviour they document.
 - When the answer is not in the references, point the participant to the relevant section of the participant guide and to the study contact (below). Do not guess.

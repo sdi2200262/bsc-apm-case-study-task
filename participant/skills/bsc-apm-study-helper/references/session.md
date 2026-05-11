@@ -34,7 +34,7 @@ Keep the summary small. In one or two sentences, name what the task is: the part
 
 In one short paragraph, tie the scaffolding to what the task integrates against. The running mock environment in the workspace is the same openeclass platform the participant cloned read-only into `<workspace>/openeclass/`, packaged as a docker image at the same pinned release; reading the `openeclass/` tree is the most direct way to understand how the live mock behaves. The mock is what the implementation integrates against during the session, what the participant validates the implementation against as they go, and the same surface the post-session evaluation runs against. The `eclass-mcp-server/` checkout in the workspace is what gets extended; `solution.patch` at wrap-up is the diff against the pinned baseline `dbd2d16`.
 
-After the summary, do not answer further questions about what the task entails, what the requirements are, what acceptance looks like, or how to interpret any part of the PRD or PROMPT. Redirect to `<workspace>/PRD.md` for the requirements and `<workspace>/PROMPT.md` for the opening prompt; the participant reads both before the session starts. Logistics questions (where files are, how to start the framework, how to wrap up) stay in scope; task-content questions go to the PRD.
+After the summary, stop. Tell the participant you can't add more on the task content itself and they should read `<workspace>/PRD.md` and `<workspace>/PROMPT.md` in full before the session starts. The two files together are the canonical task description; do not split them across different question types or present them as serving different purposes.
 
 ## Starting a session
 
@@ -70,7 +70,25 @@ claude
 
 This workspace Claude Code session does not load the helper skill; the implementation work runs unassisted.
 
-As the participant's first message in that new Claude Code session, they paste the verbatim contents of `<workspace>/PROMPT.md`. Before the participant runs `claude`, read `<workspace>/PROMPT.md` yourself and provide its contents directly to the participant as the paste-ready line, not a description of what it says. The participant copies it, launches `claude`, pastes it, and presses enter; the timestamp on that send is the session's start time.
+Each framework opens its session with a specific slash command. Tell the participant the first command for their assigned framework, then point them at the framework's documentation for the rest of the workflow.
+
+For APM, the first message is:
+
+```
+/apm-1-initiate-planner @PROMPT.md
+```
+
+`@PROMPT.md` is a Claude Code file reference that passes the workspace's `PROMPT.md` as the task context to the Planner. The rest of the APM workflow is at https://agentic-project-management.dev/docs/.
+
+For Spec-kit, the first message is:
+
+```
+/speckit.constitution
+```
+
+`PROMPT.md` is supplied later in the workflow at the `/speckit.specify` step rather than at the constitution step. The Spec-kit workflow documentation is at https://github.github.io/spec-kit/.
+
+The session's wall-clock start time is the timestamp on the first message the participant sends, whichever framework they are using.
 
 ## Working on the task
 
