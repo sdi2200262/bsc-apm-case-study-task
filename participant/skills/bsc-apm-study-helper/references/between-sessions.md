@@ -43,7 +43,7 @@ Confirm the workspace root contains exactly four entries: `PRD.md`, `PROMPT.md`,
 ls -la <workspace>
 ```
 
-Delete any extra files or directories the AI may have created at the workspace root. If `PRD.md` or `PROMPT.md` were modified during the session, restore them from the participant package's `task/` directory; session 2 must read them in their original form.
+Delete any extra files or directories the AI may have created at the workspace root. If `PRD.md` or `PROMPT.md` were modified during the session, restore them the same way they were dropped into the workspace during in-VM setup (see [in-vm-setup.md](in-vm-setup.md), Workspace and codebases). Session 2 must read both in their original form.
 
 ## 4. Wipe the Claude Code project state
 

@@ -130,7 +130,7 @@ You have been provided separately with:
 \begin{itemize}
     \item your participant ID;
     \item your per-session framework assignment (which framework to use in session 1 and which in session 2);
-    \item credentials for the Anthropic Claude Max subscription you will use during the sessions.
+    \item the Claude Code credentials you will use during the sessions.
 \end{itemize}
 
 Keep these to hand. They do not appear anywhere in this guide or in the participant package.
@@ -372,7 +372,7 @@ cd ..
 \section{Mock environment}
 \label{sec:env}
 
-The task integrates with openeclass through a single-sign-on flow, both for the existing Python MCP (Model Context Protocol) server it expands and for the C replica it asks for. The study ships a self-contained \emph{mock environment} that you run locally during each session: a real openeclass instance paired with a mock SSO service whose flow matches \texttt{eclass-mcp-server}'s integration, pre-loaded with a fixed test data set so every participant's session runs against identical state.
+The task integrates with openeclass through a single-sign-on flow, both for the existing Python MCP (Model Context Protocol) server it expands and for the C replica it asks for. The study ships a self-contained \emph{mock environment} that you run locally during each session: a real openeclass instance paired with a mock SSO service whose flow matches \texttt{eclass-mcp-server}'s integration, pre-loaded with a fixed test data set so every participant's session runs against identical state. The openeclass instance inside this mock is the same release the read-only \texttt{openeclass/} checkout in your workspace points at, packaged as a docker image; reading the \texttt{openeclass/} tree is the most direct way to understand how the live mock behaves.
 
 \subsection{Download and install}
 \label{sec:env:install}
@@ -464,7 +464,7 @@ A session has three phases: starting, working, and wrapping up. Between your two
 \subsection{Starting a session}
 \label{sec:starting}
 
-Note the wall-clock start time, then open Claude Code with the workspace as its working directory. Each framework has its own way of starting; follow your assigned framework's documentation and point it at \texttt{PROMPT.md} as the task.
+The session begins the moment you send your first message in the workspace Claude Code session; that timestamp is your wall-clock start time, not the moment you launch \texttt{claude}. Open Claude Code with the workspace as its working directory, run your assigned framework as its documentation describes, and point it at \texttt{PROMPT.md} as the task.
 
 \subsection{Working on the task}
 \label{sec:working}

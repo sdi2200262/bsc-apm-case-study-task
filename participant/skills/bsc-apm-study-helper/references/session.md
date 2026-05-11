@@ -4,7 +4,7 @@ You are here because the participant is about to start a session, is mid-session
 
 ## Before starting
 
-Each session uses one of two AI-assisted development frameworks: APM or Spec-kit. The participant has been told privately by the coordinator which framework is assigned to which session; the helper has not, and does not retain across sessions. Before any framework-specific step, ask the participant which framework is assigned to this session and wait for the answer. The two frameworks have different install models (APM ships as an npm package installed globally; Spec-kit is invoked via `uvx` from a release tag on every call, with no persistent install needed), so follow the framework-specific subsection below for whichever is assigned. The framework's own workspace bootstrap runs at session start, covered below in *Starting a session*.
+Each session uses one of two AI-assisted development frameworks: APM or Spec-kit. The participant has been told privately by the coordinator which framework is assigned to which session; you have not been told, and don't retain that across sessions. Before any framework-specific step, ask the participant which framework is assigned to this session and wait for the answer. The two frameworks have different install models (APM ships as an npm package installed globally; Spec-kit is invoked via `uvx` from a release tag on every call, with no persistent install needed), so follow the framework-specific subsection below for whichever is assigned. The framework's own workspace bootstrap runs at session start, covered below in *Starting a session*.
 
 ### Agentic Project Management (APM)
 
@@ -26,50 +26,51 @@ uvx --from git+https://github.com/github/spec-kit.git@<tag> \
 
 `<tag>` is the release tag picked from the releases page above (e.g. the current `v0.8.x`).
 
-## Orient before starting
+## Quick task summary
 
-Before the participant crosses into the workspace, give them a short orientation to what they will build, then close the door on further task questions and send them to read the PRD and PROMPT themselves.
+Before the participant crosses into the workspace, give them a short summary of what they will build, then close the door on further task questions and send them to read the PRD and PROMPT themselves.
 
-The orientation stays small. In one or two sentences, name what the task is: the participant extends the Python `eclass-mcp-server` with two new announcement tools (`get_course_announcements` and `get_general_announcements`), and produces a standalone C replica at `eclass-mcp-server/c-replica/` that exposes all six tools (the four baseline tools plus the two new ones) and behaves as a drop-in replacement for the Python server. `PRD.md` is the single source of truth: submissions are validated and evaluated against exactly what the PRD specifies, against the same mock environment the participant has running locally.
+Keep the summary small. In one or two sentences, name what the task is: the participant extends the Python `eclass-mcp-server` with two new announcement tools (`get_course_announcements` and `get_general_announcements`) and produces a standalone C replica at `eclass-mcp-server/c-replica/` that exposes all six tools (the four baseline tools plus the two new ones) and behaves as a drop-in replacement for the Python server. `PRD.md` is the single source of truth, and submissions are validated and evaluated against exactly what it specifies.
 
-In one short paragraph, tie the scaffolding to what comes next: the running mock environment is the system the implementation integrates against and the same surface the post-session evaluation runs against, so testing and iterating against it during the session is the most direct way to check the implementation; the `eclass-mcp-server/` checkout in the workspace is what gets extended; the `openeclass/` checkout is the read-only PHP reference; `solution.patch` at wrap-up is the diff against the pinned baseline `dbd2d16`.
+In one short paragraph, tie the scaffolding to what the task integrates against. The running mock environment in the workspace is the same openeclass platform the participant cloned read-only into `<workspace>/openeclass/`, packaged as a docker image at the same pinned release; reading the `openeclass/` tree is the most direct way to understand how the live mock behaves. The mock is what the implementation integrates against during the session, what the participant validates the implementation against as they go, and the same surface the post-session evaluation runs against. The `eclass-mcp-server/` checkout in the workspace is what gets extended; `solution.patch` at wrap-up is the diff against the pinned baseline `dbd2d16`.
 
-After the orientation, do not answer further questions about what the task entails, what the requirements are, what acceptance looks like, or how to interpret any part of the PRD or PROMPT. Redirect to `<workspace>/PRD.md` for the requirements and `<workspace>/PROMPT.md` for the opening prompt; the participant reads both before the session starts. Logistics questions (where files are, how to start the framework, how to wrap up) stay in scope; task-content questions go to the PRD.
+After the summary, do not answer further questions about what the task entails, what the requirements are, what acceptance looks like, or how to interpret any part of the PRD or PROMPT. Redirect to `<workspace>/PRD.md` for the requirements and `<workspace>/PROMPT.md` for the opening prompt; the participant reads both before the session starts. Logistics questions (where files are, how to start the framework, how to wrap up) stay in scope; task-content questions go to the PRD.
 
 ## Starting a session
 
-Note the wall-clock start time. The helper Claude Code session running this skill is project-scoped to the participant-package directory; to switch into the workspace, the participant exits the helper, opens a fresh shell, runs the assigned framework's bootstrap in the workspace, then starts a new Claude Code session there:
+The session begins the moment the participant sends their first message in the workspace Claude Code session. Launching `claude` and reading the PRD or PROMPT inside it is still pre-work; the wall-clock start time is the timestamp on that first message, not the moment `claude` is launched.
 
-```
-# in the helper terminal:
-/exit       # or press Ctrl+D
+Getting to the workspace Claude Code needs an interactive VM shell, because the framework's workspace bootstrap is interactive and `claude` itself wants a real terminal. Where you're running now decides what the participant does next:
 
-# then in a fresh shell:
-cd <workspace>
-```
+- If you're running on the host (driving the VM through `limactl shell task -- ...`, `multipass exec task -- ...`, or `wsl -- ...`), the participant opens a separate interactive VM shell themselves: `limactl shell task`, `multipass shell task`, the WSL2 shell from Start, or the UTM console.
+- If you're running inside the VM as a Claude Code session opened with the participant-package directory as its working directory, the participant exits it (`/exit` or `Ctrl+D`) and stays in the same terminal.
 
-From the workspace shell, run the assigned framework's workspace bootstrap. The framework's own interactive setup takes over from here; consult the framework's documentation for what to choose during bootstrap and for the rest of the workflow.
+From that interactive VM shell, the participant changes into the workspace and runs the assigned framework's workspace bootstrap. The framework's interactive setup takes over from there; the framework's documentation covers what to choose during bootstrap and the rest of the workflow.
 
 For APM:
 
 ```
+cd <workspace>
 apm init
 ```
 
 For Spec-kit (use the same `<tag>` chosen at install time; `--here` initialises in the existing workspace rather than creating a new subdirectory):
 
 ```
+cd <workspace>
 uvx --from git+https://github.com/github/spec-kit.git@<tag> \
     specify init --here
 ```
 
-Once the bootstrap completes, start Claude Code from the same workspace shell:
+Once the bootstrap completes, the participant starts Claude Code from the same workspace shell:
 
 ```
 claude
 ```
 
-The workspace's Claude Code session does not load this skill, by design: the implementation work is unassisted by the helper. With the framework bootstrapped, follow the framework's documentation for how it expects to be driven, and point it at `PROMPT.md` as the task.
+This workspace Claude Code session does not load the helper skill; the implementation work runs unassisted.
+
+As the participant's first message in that new Claude Code session, they paste the verbatim contents of `<workspace>/PROMPT.md`. Before the participant runs `claude`, read `<workspace>/PROMPT.md` yourself and provide its contents directly to the participant as the paste-ready line, not a description of what it says. The participant copies it, launches `claude`, pastes it, and presses enter; the timestamp on that send is the session's start time.
 
 ## Working on the task
 
@@ -77,7 +78,7 @@ Work for up to three hours and stop at the three-hour mark whether or not the ta
 
 The transcripts accumulate untouched throughout the session in `~/.claude/projects/<encoded>/`, where `<encoded>` is the workspace's absolute path with every character that is not an ASCII letter, digit, or hyphen replaced by `-` (the path separator `/`, the dot `.`, the underscore `_` all get replaced). The participant does not list, edit, or delete those files during the session; they are collected at the end as part of the submission.
 
-If a logistics emergency surfaces during the session (mock environment crashed, ports got bound by another service, the framework's CLI is producing an unexplained error before any task work has happened), the participant can switch to the participant-package Claude Code session in another shell and consult the helper. For anything else, redirect: in-session, the participant relies on the assigned framework, not the helper.
+If a logistics emergency surfaces during the session (mock environment crashed, ports got bound by another service, the framework's CLI is producing an unexplained error before any task work has happened), the participant can step back to you in their other window (the host AI or the in-VM Claude Code at the participant-package directory, whichever they have running) and ask for help. For anything else, redirect: in-session, the participant relies on the assigned framework, not on you.
 
 ## Wrapping up
 

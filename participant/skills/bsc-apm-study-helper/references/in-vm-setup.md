@@ -1,16 +1,12 @@
 # In-VM setup
 
-You are here because the state probe identified that the assistant is in the Linux environment with the participant package on disk and Claude Code loaded. This file covers the path from that state to a fully prepared workspace ready for the first session: toolchain installed, mock environment running, codebases cloned at their pinned commits, MCP wiring verified.
+You are here because the Linux environment is up, Claude Code is installed inside the VM, and the participant has completed the login. The remaining setup steps prepare the environment for the sessions: install the toolchain, install and start the mock environment, create the workspace and clone the two codebases, wire MCP. After this file, [session.md](session.md) covers per-session framework CLI install and the session lifecycle.
 
-The phases run in order:
+These steps run the same commands wherever you are running. From the host, wrap each command in the VM tool's shell wrapper (`limactl shell task -- bash -c '<command>'` for Lima, `multipass exec task -- bash -c '<command>'` for Multipass, `wsl -- bash -c '<command>'` for WSL2). From inside the VM, run them directly.
 
-1. Toolchain.
-2. Mock environment.
-3. Workspace and codebases.
+Order: toolchain, then mock environment, then workspace and codebases.
 
-Per-session framework CLI install (APM or Spec-kit) lives in [session.md](session.md), since it differs by session.
-
-## 1. Toolchain
+## Toolchain
 
 The case-study work needs a container runtime (Docker Engine with Compose v2), a C build chain (`gcc`, `make`, `valgrind`, `pkg-config`, plus the `libcurl` and `libxml2` development headers), two scripting runtimes (Python 3.10 or newer with `uv`, and Node.js with `npm`), and a handful of command-line utilities (`git`, `curl`, `tar`, `zip`, `unzip`, `openssl`, `bash` 3.2 or newer, `gh`). The wrap-up step at the end of each session uses `zip` to package the submission, so it must be present before session 1 ends.
 
@@ -49,7 +45,7 @@ npm --version
 uv --version
 ```
 
-## 2. Mock environment
+## Mock environment
 
 The mock environment is a self-contained, containerised stack the participant runs locally during each session. It exposes the surfaces the implementation needs to integrate with, pre-loaded with test data so every participant runs against identical state.
 
@@ -112,7 +108,7 @@ docker rmi bsc-apm/openeclass:dev bsc-apm/mock-cas:dev
 rm -rf <mock>
 ```
 
-## 3. Workspace and codebases
+## Workspace and codebases
 
 The participant package's `task/` directory holds `PRD.md` (the requirements the participant implements against) and `PROMPT.md` (the message the participant gives the AI to open the session). The *workspace* is the directory in which the participant opens Claude Code on the Linux environment for sessions; it is the AI's working directory for the session, separate from the participant-package directory.
 
@@ -126,13 +122,34 @@ The workspace must end up with this exact layout:
 `-- openeclass/             # legacy PHP codebase, read-only reference
 ```
 
-Create the workspace as a fresh directory of the participant's choice (`~/workspace/` is the default the helper proposes; before creating it, announce the default in plain terms and offer the participant the chance to specify a different path). Copy `PRD.md` and `PROMPT.md` from the participant package's `task/` directory:
+Create the workspace as a fresh directory of the participant's choice (`~/workspace/` is your default; before creating it, announce the default in plain terms and offer the participant the chance to specify a different path).
 
 ```
 mkdir -p <workspace>
-cp <participant-package>/task/PRD.md <workspace>/
-cp <participant-package>/task/PROMPT.md <workspace>/
 ```
+
+Drop `PRD.md` and `PROMPT.md` into the workspace. How you get them in depends on where the participant package currently lives:
+
+- If the participant package is on the same filesystem as the workspace (native Linux, or you're running inside the VM with the package already there): copy them directly.
+
+```
+cp <participant-package>/task/PRD.md <workspace>/PRD.md
+cp <participant-package>/task/PROMPT.md <workspace>/PROMPT.md
+```
+
+- If you're driving the VM from the host and the package is only on the host: stream the two files out of a fresh download of the package zip inside the VM, without unpacking the rest. `unzip -p` writes the named file to stdout; redirect each into the workspace.
+
+```
+cd <workspace>
+curl -L -o /tmp/pkg.zip \
+    https://github.com/sdi2200262/bsc-apm-case-study-task/releases/download/participant-package/participant-package.zip
+command -v unzip >/dev/null || { sudo apt-get update && sudo apt-get install -y unzip ; }
+unzip -p /tmp/pkg.zip participant-package/task/PRD.md > PRD.md
+unzip -p /tmp/pkg.zip participant-package/task/PROMPT.md > PROMPT.md
+rm /tmp/pkg.zip
+```
+
+Either way, the workspace ends up with both files at the root.
 
 Clone `eclass-mcp-server` and check out the pinned commit `dbd2d16`. This commit is the patch baseline: every diff submitted is computed against it.
 
