@@ -42,8 +42,8 @@ The session begins the moment the participant sends their first message in the w
 
 Getting to the workspace Claude Code needs an interactive VM shell, because the framework's workspace bootstrap is interactive and `claude` itself wants a real terminal. Where you're running now decides what the participant does next:
 
-- If you're running on the host (driving the VM through `limactl shell task -- ...`, `multipass exec task -- ...`, or `wsl -- ...`), the participant opens a separate interactive VM shell themselves: `limactl shell task`, `multipass shell task`, the WSL2 shell from Start, or the UTM console.
-- If you're running inside the VM as a Claude Code session opened with the participant-package directory as its working directory, the participant exits it (`/exit` or `Ctrl+D`) and stays in the same terminal.
+- If you are running on the host (driving the VM through `limactl shell task -- ...` or `wsl -d task -- ...`), the participant opens a separate interactive VM shell themselves: `limactl shell task`, the WSL2 shell (`wsl -d task`), or the UTM console.
+- If you are running inside the VM as a Claude Code session at the participant-package directory, the participant exits that session (`/exit` or `Ctrl+D`) from their terminal and stays in the same shell.
 
 From that interactive VM shell, the participant changes into the workspace and runs the assigned framework's workspace bootstrap. The framework's interactive setup takes over from there; the framework's documentation covers what to choose during bootstrap and the rest of the workflow.
 

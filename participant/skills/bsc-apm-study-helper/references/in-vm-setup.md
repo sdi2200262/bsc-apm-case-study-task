@@ -1,8 +1,8 @@
 # In-VM setup
 
-You are here because the Linux environment is up, Claude Code is installed inside the VM, and the participant has completed the login. The remaining setup steps prepare the environment for the sessions: install the toolchain, install and start the mock environment, create the workspace and clone the two codebases, wire MCP. After this file, [session.md](session.md) covers per-session framework CLI install and the session lifecycle.
+You are here because the Linux environment is up, Claude Code is installed inside the VM, and the participant has completed authentication. The remaining setup steps prepare the environment for the sessions: install the toolchain, install and start the mock environment, create the workspace and clone the two codebases, wire MCP. After this file, [session.md](session.md) covers per-session framework CLI install and the session lifecycle.
 
-These steps run the same commands wherever you are running. From the host, wrap each command in the VM tool's shell wrapper (`limactl shell task -- bash -c '<command>'` for Lima, `multipass exec task -- bash -c '<command>'` for Multipass, `wsl -- bash -c '<command>'` for WSL2). From inside the VM, run them directly.
+These steps run the same commands wherever you are running. From the host, wrap each command in the VM tool's shell wrapper (`limactl shell task -- bash -c '<command>'` for Lima, `wsl -d task -- bash -c '<command>'` for WSL2). From inside the VM, run them directly.
 
 Order: toolchain, then mock environment, then workspace and codebases.
 
@@ -10,7 +10,7 @@ Order: toolchain, then mock environment, then workspace and codebases.
 
 The case-study work needs a container runtime (Docker Engine with Compose v2), a C build chain (`gcc`, `make`, `valgrind`, `pkg-config`, plus the `libcurl` and `libxml2` development headers), two scripting runtimes (Python 3.10 or newer with `uv`, and Node.js with `npm`), and a handful of command-line utilities (`git`, `curl`, `tar`, `zip`, `unzip`, `openssl`, `bash` 3.2 or newer, `gh`). The wrap-up step at the end of each session uses `zip` to package the submission, so it must be present before session 1 ends.
 
-Install Docker first via the official convenience script. Download it before running so the harness can review it:
+Install Docker first via the official convenience script. Download it before running so you can inspect it:
 
 ```
 curl -fsSL https://get.docker.com -o /tmp/install-docker.sh
@@ -137,7 +137,7 @@ cp <participant-package>/task/PRD.md <workspace>/PRD.md
 cp <participant-package>/task/PROMPT.md <workspace>/PROMPT.md
 ```
 
-- If you're driving the VM from the host and the package is only on the host: stream the two files out of a fresh download of the package zip inside the VM, without unpacking the rest. `unzip -p` writes the named file to stdout; redirect each into the workspace.
+- If you are driving the VM from the host and the participant package is only on the host filesystem: stream the two files out of a fresh download of the package zip inside the VM, without unpacking the rest. `unzip -p` writes the named file to stdout; redirect each into the workspace.
 
 ```
 cd <workspace>
