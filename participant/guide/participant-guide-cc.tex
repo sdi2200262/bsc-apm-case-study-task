@@ -130,7 +130,7 @@ You have been provided separately with:
 \begin{itemize}
     \item your participant ID;
     \item your per-session framework assignment (which framework to use in session 1 and which in session 2);
-    \item the Claude Code credentials you will use during the sessions.
+    \item the Claude Code credentials you will use during the sessions, alongside short setup material describing how to apply them inside your Linux environment.
 \end{itemize}
 
 Keep these to hand. They do not appear anywhere in this guide or in the participant package.
@@ -189,23 +189,18 @@ participant-package/
 
 \texttt{PRD.md} is the sole source of truth for what to implement.
 
-\subsection{AI-assisted setup (recommended)}
+\subsection{AI-assisted setup}
 \label{sec:aiassist}
 
-The package ships a Claude Code skill at \texttt{.claude/skills/bsc-apm-study-helper/}. It drives setup, the per-session lifecycle, the between-sessions reset, and the optional cleanup, asking for your confirmation before running anything. Two ways to use it:
+The package also ships a Claude Code skill at \texttt{.claude/skills/bsc-apm-study-helper/} as an alternative to the hands-on instructions in the rest of this guide. The skill drives setup, the per-session lifecycle, the between-sessions reset, and the optional cleanup, asking for your confirmation before running anything. Two ways to use it:
 
-\textbf{From your host machine, before you have a Linux environment.} Whatever AI assistant you have on your host (Claude Code on the host, ChatGPT, Cursor, GitHub Copilot Chat, etc.) can read the skill as plain markdown after the package is unzipped, and walk you through host-side setup, including launching a Linux VM if your host is not Linux. The study coordinator's invitation includes a starter prompt you paste into your host AI; it fetches and unzips the package, reads the skill, and goes from there.
+\textbf{From your host machine, with your AI assistant.} Whatever AI assistant you have on your host, it can access the skill as plain markdown after the package is unzipped, and walk you through host-side setup, including launching a Linux VM. The study coordinator's invitation includes a starter prompt you can paste into your AI assistant to get started; it fetches and unzips the package, reads the skill, and continues from there.
 
-\textbf{From inside the Linux environment, with Claude Code installed.} Open Claude Code with the participant-package directory as its working directory and the skill loads natively:
+\textbf{From inside the Linux environment, with Claude Code installed.} Fetch and unzip the package inside the Linux environment, open Claude Code with the participant-package directory as its working directory, and the skill loads natively.
 
-\begin{verbatim}
-cd <path-to-participant-package>
-claude
-\end{verbatim}
+The skill then drives the rest of the work in conversation with you, guiding you through this setup.
 
-The skill then drives the rest of the work in conversation with you, asking for confirmation before running any command.
-
-If you would rather do everything yourself by hand, the rest of this guide covers the same operations the skill walks through.
+Both paths land on the same workspace and produce the same submission. The hands-on instructions in the rest of this guide cover every operation the skill walks through; choose whichever you prefer.
 
 \note{The skill is project-scoped to the participant-package directory, not user-level. It is therefore not loaded in your task's workspace, only in a Claude Code session opened from the participant-package directory. Do not copy it to \texttt{\textasciitilde/.claude/skills/} or to your workspace's \texttt{.claude/skills/}; doing so would defeat that isolation.}
 
@@ -217,37 +212,33 @@ If you would rather do everything yourself by hand, the rest of this guide cover
 \subsection{Operating system}
 \label{sec:os}
 
-A Linux environment is required. Two paths are supported:
+The study runs inside a dedicated Linux virtual machine, freshly created for the study. The tool depends on your host operating system: Lima on macOS and on native Linux; WSL2 with a new Ubuntu distribution on Windows.
 
-\begin{itemize}
-    \item \textbf{Native Linux} (Ubuntu 22.04 or 24.04, or an equivalent distribution).
-    \item \textbf{Linux virtual machine} on a non-Linux host. The virtual machine must satisfy every other requirement in this section, and the work happens entirely inside it: the participant package, the codebase clones, the workspace, and the mock environment all live on the VM filesystem.
-\end{itemize}
+\note{Create a new VM for the study; do not reuse a pre-existing VM or WSL distribution you use for other work. Prior Claude Code state, project history, or partial setups would interfere with transcript collection and authentication, and the post-session evaluation depends on a clean baseline.}
 
-\textbf{macOS.} Two Homebrew-installable VM tools are recommended, split by host architecture. Both are free, open source, CLI-driven, and bring up an Ubuntu LTS VM in one command. Homebrew (\url{https://brew.sh}) must be present first.
-
-Apple Silicon Macs use Multipass:
+\textbf{macOS and native Linux:} Use Lima (\url{https://lima-vm.io}). A free, open-source, CLI-driven VM manager that brings up an Ubuntu LTS VM in one command. Install Lima following the official instructions at \url{https://lima-vm.io/docs/installation/}, which cover Homebrew on macOS and distribution packages or release tarballs on Linux. Then:
 
 \begin{verbatim}
-brew install --cask multipass
-multipass launch lts --name task --cpus 4 --memory 8G --disk 20G
-multipass shell task
-\end{verbatim}
-
-Intel Macs use Lima:
-
-\begin{verbatim}
-brew install lima
 limactl start --name=task --cpus=4 --memory=8 --disk=20 \
     --tty=false template:ubuntu-24.04
 limactl shell task
 \end{verbatim}
 
-\texttt{limactl shell task} opens a shell inside the VM but lands you at the host directory you launched from, not the VM's own home; \texttt{cd \textasciitilde} before any download or extraction so files land on the VM filesystem.
+\texttt{limactl shell task} opens a shell inside the VM but lands you at the host directory you launched it from, not the VM's own home; \texttt{cd \textasciitilde} before any download or extraction so files land on the VM filesystem.
 
-On macOS, if neither Multipass nor Lima works on your host, UTM (\url{https://mac.getutm.app}) is a secondary option: free, open source, GUI-driven. Install Ubuntu 24.04 from the official ISO; setup takes longer than the CLI tools because the Ubuntu installer runs interactively.
+\textbf{Windows:} Use WSL2 (\url{https://learn.microsoft.com/en-us/windows/wsl/}). Install WSL2 following the official Microsoft instructions at \url{https://learn.microsoft.com/en-us/windows/wsl/install}. Then, from an elevated PowerShell on the Windows host, create the \texttt{task} distribution from the official Ubuntu rootfs tarball and launch it:
 
-\textbf{Windows.} Install WSL2 with an Ubuntu 24.04 distribution following the official Microsoft instructions at \url{https://learn.microsoft.com/en-us/windows/wsl/install}, then follow the native-Linux path inside the WSL2 shell.
+\begin{verbatim}
+$rootfs = "ubuntu-noble.tar.gz"
+$url = "https://cloud-images.ubuntu.com/wsl/noble/current/" +
+       "ubuntu-noble-wsl-amd64-wsl.rootfs.tar.gz"
+Invoke-WebRequest -Uri $url -OutFile $rootfs
+mkdir C:\WSL -Force | Out-Null
+wsl --import task C:\WSL\task $rootfs
+wsl -d task
+\end{verbatim}
+
+The first shell lands you in as \texttt{root} (the imported rootfs has no non-root user yet); operating as \texttt{root} is fine for the rest of the study, and sudo-prefixed commands in later sections work as expected under root.
 
 \warn{Docker Desktop is not a substitute. The mock environment described in Section~\ref{sec:env} runs Docker Engine \emph{inside} the VM, not on the host.}
 
@@ -308,7 +299,7 @@ bash /tmp/install-cc.sh
 claude --version
 \end{verbatim}
 
-The official instructions at \url{https://docs.claude.com/en/docs/claude-code} cover other install paths. Sign in by running \texttt{claude} and following the in-product login flow with the credentials you were provided.
+The official instructions at \url{https://docs.claude.com/en/docs/claude-code} cover other install paths. Authentication itself runs once, inside this Linux environment; follow the setup material the study coordinator gave you separately (see Section~\ref{sec:beforestart}) to apply it. The credentials and the setup material live inside this VM from that point on; do not reuse them elsewhere.
 
 \subsection{Agentic Project Management (APM)}
 \label{sec:aitools:apm}
@@ -333,7 +324,7 @@ uvx --from git+https://github.com/github/spec-kit.git@<tag> \
 \section{Workspace}
 \label{sec:workspace}
 
-The participant package's \texttt{task/} directory holds \texttt{PRD.md} (the requirements you implement against) and \texttt{PROMPT.md} (the message you give the AI to open the session). The \emph{workspace} is the directory in which you open Claude Code on your Linux environment (native or inside the VM); it is the AI's working directory for the session, and it must end up with this exact layout:
+The participant package's \texttt{task/} directory holds \texttt{PRD.md} (the requirements you implement against) and \texttt{PROMPT.md} (the message you give the AI to open the session). The \emph{workspace} is the directory inside your Linux VM in which you open Claude Code; it is the AI's working directory for the session, and it must end up with this exact layout:
 
 \begin{verbatim}
 <workspace>/
@@ -443,7 +434,7 @@ cp <mock>/.env <workspace>/eclass-mcp-server/.env
 cp -r <mock>/certs <workspace>/eclass-mcp-server/certs
 \end{verbatim}
 
-The \texttt{.env} references the certificate by relative path, so no further configuration is required.
+The \texttt{.env} references the certificate by relative path, so no further configuration is required. After the copy, run \texttt{<mock>/scripts/verify-mcp -{}-mcp-root <workspace>/eclass-mcp-server} (Section~\ref{sec:env:lifecycle}) to confirm the wiring; it prints \texttt{wiring ok} on success.
 
 \subsection{Uninstall}
 \label{sec:env:uninstall}
@@ -464,7 +455,7 @@ A session has three phases: starting, working, and wrapping up. Between your two
 \subsection{Starting a session}
 \label{sec:starting}
 
-The session begins the moment you send your first message in the workspace Claude Code session; that timestamp is your wall-clock start time, not the moment you launch \texttt{claude}. Open Claude Code with the workspace as its working directory, run your assigned framework as its documentation describes, and point it at \texttt{PROMPT.md} as the task.
+The session begins the moment you send your first message in the workspace Claude Code session; that timestamp is your wall-clock start time, not the moment you launch \texttt{claude}. Inside the workspace, run your assigned framework's workspace bootstrap (\texttt{apm init} for APM; \texttt{uvx --from git+https://github.com/github/spec-kit.git@<tag> specify init --here} for Spec-kit, using the same \texttt{<tag>} picked at install time), launch Claude Code, and send the framework's first message per its official documentation (Section~\ref{sec:beforestart}).
 
 \subsection{Working on the task}
 \label{sec:working}
@@ -616,10 +607,7 @@ This study is conducted for a Bachelor's thesis by Konstantinos Chaidemenos (\hr
 
 \begin{verbatim}
 sdi2200262@di.uoa.gr      Email
-cobuter_man               Discord
 \end{verbatim}
-
-\vspace{1cm}
 
 Thank you for your time and contribution to this research.
 
