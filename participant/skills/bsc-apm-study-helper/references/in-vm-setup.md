@@ -4,6 +4,8 @@ You are here because the Linux environment is up, Claude Code is installed insid
 
 These steps run the same commands wherever you are running. From the host, wrap each command in the VM tool's shell wrapper (`limactl shell task -- bash -c '<command>'` for Lima, `wsl -d task -- bash -c '<command>'` for WSL2). From inside the VM, run them directly.
 
+The host/VM split and the shell-wrapper convention above are established in host-setup.md, which is also where the Linux environment, the Claude Code install, and authentication were completed; this file does not repeat them. How these commands are run, the arrangement asked once at the start and the points that always pause for approval, is governed by the operating contract in SKILL.md and is not re-decided here: continue under the arrangement already in effect, without re-asking.
+
 Order: toolchain, then mock environment, then workspace and codebases.
 
 ## Toolchain
