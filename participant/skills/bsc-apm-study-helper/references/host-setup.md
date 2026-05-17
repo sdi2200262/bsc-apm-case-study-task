@@ -76,7 +76,7 @@ bash /tmp/install-cc.sh
 claude --version
 ```
 
-`claude --version` prints the installed version. If the command is not found, the installer wrote its PATH update to a login-shell startup file (typically `~/.profile`) but the current shell is non-login (Lima's `limactl shell task` opens a non-login shell, for example), so the update has not been applied. The installer prints which file it wrote to; source that file, or open a new login shell, before continuing:
+`claude --version` prints the installed version; `2.1.126` is the floor verified for the study, anything newer is fine. If the command is not found, the installer wrote its PATH update to a login-shell startup file (typically `~/.profile`) but the current shell is non-login (Lima's `limactl shell task` opens a non-login shell, for example), so the update has not been applied. The installer prints which file it wrote to; source that file, or open a new login shell, before continuing:
 
 ```
 source ~/.profile     # or whichever file the installer named

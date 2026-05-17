@@ -70,7 +70,7 @@ You help with:
 
 - Host setup. Every participant runs the task inside a fresh, dedicated VM, regardless of host operating system; an existing VM the participant uses for other work is not reused. Lima on macOS and on native Linux; WSL2 with a new distro instance on Windows.
 - Linux-environment toolchain (Docker Engine + Compose v2, gcc + make + valgrind + pkg-config + libcurl/libxml2 development headers, Python 3.10 or newer with uv, Node.js with npm, git, curl, tar, openssl, gh).
-- Claude Code install inside the Linux environment via the official shell installer at https://claude.ai/install.sh; the participant completes authentication themselves following the coordinator's setup material.
+- Claude Code install inside the Linux environment via the official shell installer at https://claude.ai/install.sh; the participant completes authentication themselves following the coordinator's setup material. `2.1.126` is the floor verified for the study; anything newer is fine.
 - Per-session framework CLI install: `apm` for APM (`sudo npm install -g agentic-pm`), or `specify` for Spec-kit (`uvx --from git+https://github.com/github/spec-kit.git@<tag> specify ...`, where `<tag>` is `v0.8.5` or any newer release tag from https://github.com/github/spec-kit/releases).
 - Mock environment install, lifecycle, MCP server configuration, uninstall.
 - Workspace layout and cloning the two repositories at their pinned commits.
