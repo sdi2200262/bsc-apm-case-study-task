@@ -50,11 +50,13 @@ The VM runs hardware-accelerated on Apple Silicon macOS and on native Linux (Vir
 Install WSL2 if it is not already on the host, following the official Microsoft instructions at https://learn.microsoft.com/en-us/windows/wsl/install (`wsl --install` from an elevated PowerShell, then reboot if prompted). Then create a fresh Ubuntu distro named `task` by importing the official Ubuntu rootfs tarball. From an elevated PowerShell on the Windows host:
 
 ```
-Invoke-WebRequest -Uri "https://cloud-images.ubuntu.com/wsl/noble/current/ubuntu-noble-wsl-amd64-wsl.rootfs.tar.gz" -OutFile "ubuntu-noble.tar.gz"
+Invoke-WebRequest -Uri "https://cloud-images.ubuntu.com/wsl/releases/24.04/current/ubuntu-noble-wsl-amd64-wsl.rootfs.tar.gz" -OutFile "ubuntu-noble.tar.gz"
 New-Item -Path "C:\WSL" -ItemType Directory -Force | Out-Null
 wsl --import task C:\WSL\task ubuntu-noble.tar.gz
 wsl -d task
 ```
+
+If that download URL returns a 404, Ubuntu has reorganised its image tree again; find the current amd64 WSL rootfs tarball under the Ubuntu WSL image index at https://cloud-images.ubuntu.com/wsl/releases/ (pick the `24.04` or `noble` directory, then `current/`) and substitute its URL in the command above.
 
 This produces a fresh Ubuntu 24.04 instance named `task`, separate from any other WSL distros the participant may have. The first shell lands the participant in as `root` (the imported rootfs has no non-root user yet); operating as `root` is fine for the rest of the study (sudo-prefixed commands in later sections are no-ops under root and still produce the expected output).
 

@@ -230,8 +230,8 @@ limactl shell task
 
 \begin{verbatim}
 $rootfs = "ubuntu-noble.tar.gz"
-$url = "https://cloud-images.ubuntu.com/wsl/noble/current/" +
-       "ubuntu-noble-wsl-amd64-wsl.rootfs.tar.gz"
+$url = "https://cloud-images.ubuntu.com/wsl/releases/" +
+       "24.04/current/ubuntu-noble-wsl-amd64-wsl.rootfs.tar.gz"
 Invoke-WebRequest -Uri $url -OutFile $rootfs
 mkdir C:\WSL -Force | Out-Null
 wsl --import task C:\WSL\task $rootfs
