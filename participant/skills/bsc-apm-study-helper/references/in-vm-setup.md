@@ -98,7 +98,7 @@ Once installed, manage the environment from its prefix:
 - `./scripts/logs`: tail container logs.
 - `./scripts/reset`: drop database state and re-apply the test data.
 
-A reset during a session is unusual and reserved for unusual situations (for instance, recovering after a destructive experiment by the AI); when needed, `./scripts/reset` returns the environment to its initial state.
+A reset in the middle of a running session is unusual and reserved for recovering after a destructive experiment by the AI; when needed, `./scripts/reset` returns the environment to its initial state. The mandatory mock reseed before session 2 is a separate, expected step covered in [between-sessions.md](between-sessions.md), step 5.
 
 ### Uninstall
 
@@ -164,13 +164,13 @@ uv sync --dev --all-extras
 cd ..
 ```
 
-Clone `openeclass` at its pinned commit `e8b3329`. The AI treats this codebase as a read-only reference, and the participant keeps it that way:
+Clone `openeclass` at its pinned release `Release_4.3.3`, the release the mock is built from. The AI treats this codebase as a read-only reference, and the participant keeps it that way:
 
 ```
 cd <workspace>
 git clone https://github.com/gunet/openeclass.git
 cd openeclass
-git checkout e8b3329
+git checkout Release_4.3.3
 cd ..
 ```
 

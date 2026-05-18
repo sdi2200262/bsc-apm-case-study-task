@@ -352,13 +352,13 @@ uv sync --dev --all-extras
 cd ..
 \end{verbatim}
 
-Clone \texttt{openeclass} at its pinned commit \texttt{e8b3329}. The AI treats this codebase as a read-only reference; you should not modify it.
+Clone \texttt{openeclass} at its pinned release \texttt{Release\_4.3.3}, the release the mock is built from. The AI treats this codebase as a read-only reference; you should not modify it.
 
 \begin{verbatim}
 cd <workspace>
 git clone https://github.com/gunet/openeclass.git
 cd openeclass
-git checkout e8b3329
+git checkout Release_4.3.3
 cd ..
 \end{verbatim}
 
@@ -424,7 +424,7 @@ Once installed, manage the environment from its prefix:
     \item \texttt{./scripts/reset}: drop database state and re-apply the test data.
 \end{itemize}
 
-You should not need to reset during a session. If you do (for instance, after a destructive experiment from the AI), \texttt{./scripts/reset} returns the environment to its initial state.
+You should not need to reset in the middle of a running session. If you do (for instance, after a destructive experiment from the AI), \texttt{./scripts/reset} returns the environment to its initial state. The mandatory reseed before session~2 is a separate, expected step (Section~\ref{sec:between}, step~5).
 
 \subsection{MCP server configuration}
 \label{sec:env:config}
@@ -452,10 +452,12 @@ rm -rf <mock>
 \section{Session workflow}
 \label{sec:workflow}
 
-A session has three phases: starting, working, and wrapping up. Between your two sessions, run the reset at the end of this section to return the workspace and the transcript store to the same state the setup steps above produced for session 1.
+A session has three phases: starting, working, and wrapping up. Between your two sessions, run the steps at the end of this section: a baseline reset of the workspace and transcript store, which you can do any time after session~1 wraps, and a mock reseed, which you run immediately before session~2 starts.
 
 \subsection{Starting a session}
 \label{sec:starting}
+
+For session~2, the mock reseed in Section~\ref{sec:between}, step~5, must have just been run; if you did the between-sessions baseline reset earlier and time has passed, run that reseed again now, before your first message, so the test data is current.
 
 The session begins the moment you send your first message in the workspace Claude Code session; that timestamp is your wall-clock start time, not the moment you launch \texttt{claude}. Inside the workspace, run your assigned framework's workspace bootstrap (\texttt{apm init} for APM; \texttt{uvx --from git+https://github.com/github/spec-kit.git@<tag> specify init --here} for Spec-kit, using the same \texttt{<tag>} picked at install time), launch Claude Code, and send the framework's first message per its official documentation (Section~\ref{sec:beforestart}).
 
@@ -532,7 +534,7 @@ mv <workspace>/P001_S1_apm.zip ~/Documents/bsc-apm-submissions/
 \subsection{Resetting between sessions}
 \label{sec:between}
 
-Run this after the first session has wrapped up and before the second session starts. Before running any of the steps below, confirm that session 1's submission zip is in your safe-storage directory (e.g., \texttt{ls -la \textasciitilde/Documents/bsc-apm-submissions/} should list \texttt{P001\_S1\_*.zip}); the reset is destructive and only zips outside the workspace survive. The reset then returns the workspace and the transcript store to the same state the setup steps above produced for session 1, so session 2 begins from an identical baseline. The mock environment is left alone unless you have a reason to believe it has drifted from its initial state.
+This has two parts with different timing. The baseline reset (steps 1 to 4) returns the workspace and the transcript store to the same state the setup steps above produced for session~1, and you can run it any time after session~1 wraps. The mock reseed (step~5) refreshes the test data and must be run immediately before session~2 starts, even when you ran steps 1 to 4 earlier. Before running any step below, confirm that session~1's submission zip is in your safe-storage directory (e.g., \texttt{ls -la \textasciitilde/Documents/bsc-apm-submissions/} should list \texttt{P001\_S1\_*.zip}); the reset is destructive and only zips outside the workspace survive.
 
 \textbf{1. Reset the implementation codebase.} From inside \texttt{eclass-mcp-server}, hard-reset to the pinned commit, wipe untracked and ignored files, and rebuild the virtual environment from scratch:
 
@@ -549,7 +551,7 @@ uv sync --dev --all-extras
 
 \begin{verbatim}
 cd <workspace>/openeclass
-git reset --hard e8b3329
+git reset --hard Release_4.3.3
 git clean -fdx
 \end{verbatim}
 
@@ -570,24 +572,26 @@ rm -rf ~/.claude/projects/<encoded>/
 
 The \texttt{ls} step is the inventory; review it before running \texttt{rm}. Run only after you have safely stored the session's zip. Claude Code recreates the project directory on the next launch.
 
-\textbf{5. Reset the mock environment, only if needed.} The mock environment retains its initial state across sessions and usually does not need a reset. Reset it only if a previous session modified the test data:
+\textbf{5. Reseed the mock environment, immediately before session~2.} Run this as the last step before session~2 starts, not earlier. The mock's test data is dated relative to when it was loaded, so session~2 must run against a freshly loaded set. Run it even when you did steps 1 to 4 earlier, and even when no session modified the test data:
 
 \begin{verbatim}
 cd <mock>
 ./scripts/reset
 \end{verbatim}
 
+\texttt{./scripts/reset} is a single self-contained command: it stops the stack, drops its data volumes, and brings everything back up with the test data reloaded, so its dates are current as of session~2's start. No separate \texttt{./scripts/down} or \texttt{./scripts/up} is needed around it. It does not touch \texttt{<mock>/.env} or \texttt{<mock>/certs/}, so the MCP wiring set up earlier still holds. The reload takes a few minutes and runs before session~2's wall-clock start, so it does not count against the session time.
+
 \textbf{6. Confirm the baseline.} After the reset, confirm the workspace and the transcript store match the same state setup produced for session 1:
 
 \begin{itemize}
-    \item \texttt{<mock>/scripts/status} reports every service ok.
+    \item \texttt{<mock>/scripts/status} reports every service ok, with the test data just reloaded by step~5.
     \item \texttt{<workspace>/eclass-mcp-server} is at \texttt{dbd2d16} with a clean working tree.
-    \item \texttt{<workspace>/openeclass} is at \texttt{e8b3329} with a clean working tree.
+    \item \texttt{<workspace>/openeclass} is at \texttt{Release\_4.3.3} with a clean working tree.
     \item The workspace root contains \texttt{PRD.md}, \texttt{PROMPT.md}, \texttt{eclass-mcp-server/}, and \texttt{openeclass/}, and nothing else; \texttt{PRD.md} and \texttt{PROMPT.md} match their original contents from the participant package.
     \item Your workspace's project directory under \texttt{\textasciitilde/.claude/projects/} holds no session-1 state.
 \end{itemize}
 
-Once the baseline is in place, return to Section~\ref{sec:starting} and repeat the same starting-working-wrapping-up flow for session 2 (with your other assigned framework). Session 2 ends after Section~\ref{sec:wrapping}, step 5 (\emph{Submit the form}); the resetting steps are not needed to be run again.
+With the reseed just run, return to Section~\ref{sec:starting} and begin session~2 promptly (with your other assigned framework) so the test data stays current; repeat the same starting-working-wrapping-up flow. Session~2 ends after Section~\ref{sec:wrapping}, step 5 (\emph{Submit the form}); the resetting steps are not needed to be run again.
 
 \subsection{Cleaning up}
 \label{sec:teardown}

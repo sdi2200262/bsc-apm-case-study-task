@@ -38,6 +38,8 @@ After the summary, stop. Tell the participant you can't add more on the task con
 
 ## Starting a session
 
+For session 2, the mock reseed in [between-sessions.md](between-sessions.md) (step 5) must have just been run. If the between-sessions baseline reset was done earlier and time has passed since, run that reseed again now, before the first message, so the mock's test data is current as of session 2's start.
+
 The session begins the moment the participant sends their first message in the workspace Claude Code session. Launching `claude` and reading the PRD or PROMPT inside it is still pre-work; the wall-clock start time is the timestamp on that first message, not the moment `claude` is launched.
 
 Getting to the workspace Claude Code needs an interactive VM shell, because the framework's workspace bootstrap is interactive and `claude` itself wants a real terminal. Where you're running now decides what the participant does next:

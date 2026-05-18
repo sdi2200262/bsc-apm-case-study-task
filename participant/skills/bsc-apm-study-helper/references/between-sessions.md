@@ -1,6 +1,6 @@
 # Between sessions
 
-You are here because the participant has wrapped up the first session and is about to start the second. The destructive reset returns the workspace and the transcript store to the same state in-VM setup produced for session 1, so session 2 begins from an identical baseline.
+You are here because the participant has wrapped up the first session and is preparing for the second. This has two parts with different timing. The baseline reset (steps 1 to 4) returns the workspace and the transcript store to the same state in-VM setup produced for session 1; it can be run any time after session 1 wraps. The mock reseed (step 5) refreshes the test data so its dates are current, and must be run immediately before session 2 starts, even when steps 1 to 4 were done earlier. A participant who resets right after session 1 and returns days later for session 2 still runs step 5 at that point.
 
 Before any of the steps below, confirm session 1's submission zip is in the safe-storage directory. The reset is destructive; only zips outside the workspace survive:
 
@@ -9,8 +9,6 @@ ls -la ~/Documents/bsc-apm-submissions/
 ```
 
 The listing should include `<PID>_S1_<framework>.zip`. If it does not, stop and resolve that first; the zip cannot be recovered after the reset.
-
-The mock environment is left alone unless there is a reason to believe it has drifted from its initial state.
 
 ## 1. Reset the implementation codebase
 
@@ -27,11 +25,11 @@ uv sync --dev --all-extras
 
 ## 2. Reset the reference codebase
 
-Restore `openeclass` to its pinned commit and a clean working tree:
+Restore `openeclass` to its pinned release `Release_4.3.3` and a clean working tree:
 
 ```
 cd <workspace>/openeclass
-git reset --hard e8b3329
+git reset --hard Release_4.3.3
 git clean -fdx
 ```
 
@@ -62,23 +60,25 @@ rm -rf ~/.claude/projects/<encoded>/
 
 Run the `rm` only after the session's zip has been safely stored. Claude Code recreates the project directory on the next launch.
 
-## 5. Reset the mock environment, only if needed
+## 5. Reseed the mock environment, immediately before session 2
 
-The mock environment retains its initial state across sessions and usually does not need a reset. Reset it only if a previous session modified the test data:
+Run this as the last step before session 2 starts, not earlier. The mock's test data is dated relative to when it was loaded, so session 2 must run against a freshly loaded set. Run it even when steps 1 to 4 were done earlier, and even when no session modified the test data:
 
 ```
 cd <mock>
 ./scripts/reset
 ```
 
+`./scripts/reset` is a single self-contained command: it stops the stack, drops its data volumes, and brings everything back up with the test data reloaded, so its dates are current as of session 2's start. No separate `./scripts/down` or `./scripts/up` is needed around it. It does not touch `<mock>/.env` or `<mock>/certs/`, so the MCP wiring set up earlier still holds. The reload takes a few minutes and runs before session 2's wall-clock start, so it does not count against the session time.
+
 ## 6. Confirm the baseline
 
 After the reset, confirm the workspace and the transcript store match the same state in-VM setup produced for session 1:
 
-- `<mock>/scripts/status` reports every service ok.
+- `<mock>/scripts/status` reports every service ok, with the test data just reloaded by step 5.
 - `<workspace>/eclass-mcp-server` is at `dbd2d16` with a clean working tree.
-- `<workspace>/openeclass` is at `e8b3329` with a clean working tree.
+- `<workspace>/openeclass` is at `Release_4.3.3` with a clean working tree.
 - The workspace root contains `PRD.md`, `PROMPT.md`, `eclass-mcp-server/`, `openeclass/`, and nothing else; `PRD.md` and `PROMPT.md` match their original contents from the participant package.
 - The workspace's Claude Code project directory under `~/.claude/projects/` either does not yet exist or has been freshly created with no session-1 state inside.
 
-Once the baseline is in place, the participant returns to [session.md](session.md) for session 2 (with the other assigned framework). Session 2 ends at *Wrapping up*, step 5 (*Submit the form*); the resetting steps are not run again.
+With the reseed just run, the participant returns to [session.md](session.md) and begins session 2 promptly (with the other assigned framework) so the test data stays current. Session 2 ends at *Wrapping up*, step 5 (*Submit the form*); the resetting steps are not run again.
