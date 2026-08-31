@@ -1,89 +1,76 @@
 # BSc APM Case Study - Task
 
-This repository ships the BSc thesis case-study task: the task specification (PRD, PROMPT), the participant guide, helper scripts and a Claude Code helper skill, and the containerised testing environment the task runs against.
+Task materials and containerised testing environment for the BSc thesis case study comparing [Agentic Project Management (APM)](https://github.com/sdi2200262/agentic-project-management) with [GitHub Spec-kit](https://github.github.io/spec-kit/) for AI-assisted software development.
 
-The thesis evaluates [Agentic Project Management (APM)](https://github.com/sdi2200262/agentic-project-management) against [GitHub Spec-kit](https://github.github.io/spec-kit/) for AI-assisted software development; the task and testing environment in this repository are framework-agnostic.
+The repository contains the task specification, participant guide and helper skill, deterministic seed data, and a portable Open eClass environment with a mock authentication service. The task and testing environment are framework-independent.
 
 ## Releases
 
-Two release surfaces ship from this repository:
+The repository publishes three releases:
 
-- **Participant package** (`participant-package` tag): `participant-package.zip` containing the task spec, guide PDF, helper scripts, and the Claude Code helper skill. Participants download and unpack this on their Linux environment.
-- **Testing environment** (`bsc-apm-case-study-task` and `bsc-apm-case-study-task-arm64` tags): architecture-specific tarballs (`bsc-apm-amd64.tar.gz`, `bsc-apm-arm64.tar.gz`) carrying the containerised openeclass instance, mock authentication service, deterministic seed data, and lifecycle scripts. Participants install and run this locally during their case-study session; the grading machine installs and runs the same release when evaluating submissions.
+- [`participant-package`](https://github.com/sdi2200262/bsc-apm-case-study-task/releases/tag/participant-package) provides `participant-package.zip`, which contains the task specification, guide, and helper skill.
+- [`bsc-apm-case-study-task`](https://github.com/sdi2200262/bsc-apm-case-study-task/releases/tag/bsc-apm-case-study-task) provides the AMD64 testing environment as `bsc-apm-amd64.tar.gz`.
+- [`bsc-apm-case-study-task-arm64`](https://github.com/sdi2200262/bsc-apm-case-study-task/releases/tag/bsc-apm-case-study-task-arm64) provides the ARM64 testing environment as `bsc-apm-arm64.tar.gz`.
 
-The mock authentication service replicates the surface the [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reference client expects (Apereo CAS / SAML 1.1 against the University of Athens deployment), and identifies itself as a mock to inspecting agents through page copy, the `Server: bsc-apm-mock-cas` response header, and inline XML comments.
+## Requirements
 
-## Prerequisites
-
-A Linux host (native, WSL2 with Docker Engine inside the distro, or a Linux VM on macOS) with Docker Engine and Compose v2, roughly 4 GB free RAM and 20 GB free disk, and Bash 3.2 or newer. TCP ports 80 (openeclass) and 18443 (mock authentication service) must be free before `./install`.
-
-These are the testbed's own floor. Participants run it inside a Linux environment whose own floor is higher (4 vCPUs, 8 GB RAM, 20 GB disk); the participant guide states that floor.
+Run the testing environment on a Linux host, WSL2 distribution with Docker Engine, or Linux virtual machine. It requires Docker Engine with Compose v2, Bash 3.2 or newer, about 4 GB of free RAM, 20 GB of free disk space, and free TCP ports 80 and 18443.
 
 ## Install and run
 
+The following commands select the release for the host architecture and install it under `~/.bsc-apm/`:
+
 ```bash
-# 1. Download the tarball for your architecture and extract it into <prefix>
-ARCH=$(uname -m)
-curl -L https://github.com/sdi2200262/bsc-apm-case-study-task/releases/download/<release-tag>/bsc-apm-${ARCH}.tar.gz \
-    | tar -xz -C <prefix>
+case "$(uname -m)" in
+  x86_64) ARCH=amd64; RELEASE=bsc-apm-case-study-task ;;
+  aarch64|arm64) ARCH=arm64; RELEASE=bsc-apm-case-study-task-arm64 ;;
+  *) echo "unsupported architecture: $(uname -m)" >&2; exit 1 ;;
+esac
 
-# 2. Install from inside <prefix> (loads the bundled images, generates the
-#    self-signed SSL certs; idempotent)
-cd <prefix>
+PREFIX="$HOME/.bsc-apm"
+mkdir -p "$PREFIX"
+curl -fL "https://github.com/sdi2200262/bsc-apm-case-study-task/releases/download/$RELEASE/bsc-apm-$ARCH.tar.gz" \
+  | tar -xz -C "$PREFIX"
+
+cd "$PREFIX"
 ./install
-
-# 3. Bring the stack up (waits for healthchecks, applies the seed, prints
-#    the localhost URLs the MCP server should target)
 ./scripts/up
 ```
 
-`<prefix>` is where the environment lives (recommended `~/.bsc-apm/`); the participant chooses it, with no silent default.
+`./install` loads the bundled images and generates self-signed certificates. It is safe to run again. `./scripts/up` starts the services, waits for their health checks, applies the seed data, and prints the local service URLs.
 
-## Lifecycle
+## Environment commands
 
-Manage the running environment with the scripts under `scripts/`:
+Run these commands from the installation directory:
 
-| Script | Purpose |
+| Command | Purpose |
 |---|---|
-| `./scripts/up` | Bring the stack up; idempotent. |
-| `./scripts/down` | Bring the stack down; named volumes survive. |
-| `./scripts/status` | Probe each service from the mock side and report whether the stack is healthy. |
-| `./scripts/verify-mcp --mcp-root <path>` | Consumer-side complement to `status`; probe whether an `eclass-mcp-server` checkout authenticates against this mock with the `.env` and `certs/` it was given. Prints `wiring ok`, or names the missing file or variable. Refuses to run unless the checkout is at the pinned baseline (`dbd2d16`) with no tracked-file changes. |
-| `./scripts/logs` | Tail container logs. |
-| `./scripts/reset-db` | Drop the database volume and re-apply the seed. |
-| `./scripts/reset-cas` | Clear the mock authentication service's in-memory state. |
-| `./scripts/reset-cache` | Clear the openeclass PHP opcache and session storage. |
-| `./scripts/reset` | Run all three resets plus a fresh volume re-init; used by the grading machine before each run. |
+| `./scripts/up` | Start the environment and apply the seed data. |
+| `./scripts/down` | Stop the environment while preserving its volumes. |
+| `./scripts/status` | Report service health. |
+| `./scripts/logs` | Follow container logs. |
+| `./scripts/reset` | Reset the database, authentication state, cache, and volumes. |
+| `./scripts/reset-db` | Reset and reseed the database. |
+| `./scripts/reset-cas` | Clear the mock authentication state. |
+| `./scripts/reset-cache` | Clear Open eClass sessions and PHP opcode cache. |
+| `./scripts/verify-mcp --mcp-root <path>` | Verify a clean reference MCP checkout and its environment configuration. |
 
 ## Architecture
 
-Three services run in one Docker Compose stack under the pinned project name `bsc-apm-env`, with deterministic container names (`bsc-apm-env-{db,eclass,sso}-1`) regardless of install path.
+Docker Compose runs three services under the project name `bsc-apm-env`:
 
-- **`db`**: MariaDB 10.11 (upstream multi-arch image) holding the openeclass database; the `db_data` volume persists it across `down`/`up`. `eclass` waits on its healthcheck.
-- **`eclass`**: Open eClass from upstream gunet, pinned to `Release_4.3.3` and built into `bsc-apm/openeclass:dev` at release-prep time (upstream `master` does not produce a working build). Exposes host port 80; `config_data`/`courses_data`/`video_data` preserve runtime state. The image is exactly the upstream platform with no sidecars; on a fresh database `scripts/up` runs openeclass's first-time install before seeding, so participants never see the install wizard.
-- **`sso`**: the mock authentication service, `bsc-apm/mock-cas:dev` built from `mock-cas/`. Implements the Apereo CAS / SAML 1.1 surface the reference client expects. Exposes host port 18443 with self-signed TLS (the container listens on 8082, remapped at the host); certs under `<prefix>/certs/` mount read-only.
+- `db` runs MariaDB 10.11 and stores Open eClass data in a persistent volume.
+- `eclass` runs Open eClass `Release_4.3.3` on `http://localhost/`.
+- `sso` runs the mock CAS and SAML authentication service on host port 18443 with a self-signed certificate.
 
-The eclass container reaches the mock through the docker bridge gateway `172.17.0.1:18443`, matching the seeded `auth_settings` row. From the host, `http://localhost/` serves the openeclass UI and API and `https://172.17.0.1:18443/` serves the mock.
-
-The reference [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server) reads the environment variables below; the values hold when the MCP server runs on the host with the environment up. The grading machine sets them from the install path; participants set them in their MCP server's `.env`, and the participant guide carries the concrete values.
-
-| Variable | Value |
-|---|---|
-| `ECLASS_URL` | `http://localhost` |
-| `ECLASS_USERNAME` | matches `seed/seed.yaml`'s `user.username` |
-| `ECLASS_PASSWORD` | matches `seed/seed.yaml`'s `user.cas_password` |
-| `ECLASS_SSO_DOMAIN` | `172.17.0.1:18443` |
-| `ECLASS_SSO_PROTOCOL` | `https` |
-| `SSL_CERT_FILE` | `<prefix>/certs/sso_cert.pem` |
-| `REQUESTS_CA_BUNDLE` | `<prefix>/certs/sso_cert.pem` |
-| `CURL_CA_BUNDLE` | `<prefix>/certs/sso_cert.pem` |
+The seed source is [`seed/seed.yaml`](seed/seed.yaml). [`compose.yaml`](compose.yaml), [`install`](install), and the scripts under [`scripts/`](scripts/) define the runtime and lifecycle. The participant package source lives under [`participant/`](participant/).
 
 ## Related
 
 - [bsc-apm-thesis](https://github.com/sdi2200262/bsc-apm-thesis): thesis LaTeX source.
 - [bsc-apm-case-study-infra](https://github.com/sdi2200262/bsc-apm-case-study-infra): grader, parser, scoring, and evaluation pipeline.
-- [bsc-apm-case-study-data](https://github.com/sdi2200262/bsc-apm-case-study-data): participant submissions (private).
-- [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server): reference MCP client for the openeclass platform.
+- [bsc-apm-case-study-data](https://github.com/sdi2200262/bsc-apm-case-study-data): encrypted participant data.
+- [eclass-mcp-server](https://github.com/sdi2200262/eclass-mcp-server): reference MCP client for Open eClass.
 
 ## License
 
